@@ -47,18 +47,18 @@ class DocFinder {
         this.noiseWordsIndex = new Set(noiseWords.split(/\s+/));
     }
 
-    addContent(name, content){
-     //   let wordsIndex = content.split(/\s+/);
+    addContent(name, content) {
+        //   let wordsIndex = content.split(/\s+/);
 
         let wordsIndexForLine = content.split(/\n+/);
         //map for line offset with respect to the book
-        if(!this.bookLineMap.has(name)) {
+        if (!this.bookLineMap.has(name)) {
             this.bookLineMap.set(name, wordsIndexForLine);
         }
 
         const lengthOfBook = wordsIndexForLine.length;
         //selecting a line from wordsIndexForLine
-        for(let j = 0 ; j < lengthOfBook ; j++) {
+        for (let j = 0; j < lengthOfBook; j++) {
             let wordsIndex = wordsIndexForLine[j].split(/\s+/);
             const length = wordsIndex.length;
 
@@ -74,10 +74,10 @@ class DocFinder {
                     const tempMap = this.map1.get(normalizedWord);
                     if (tempMap.has(name)) {
                         //when the word and book are in map
-                        this.map1.set(normalizedWord, tempMap.set(name, [tempMap.get(name)[0] + 1,tempMap.get(name)[1]] ));
+                        this.map1.set(normalizedWord, tempMap.set(name, [tempMap.get(name)[0] + 1, tempMap.get(name)[1]]));
                     } else {
                         //when the word is in map but book is different
-                        this.map1.set(normalizedWord, tempMap.set(name, [1,j]));
+                        this.map1.set(normalizedWord, tempMap.set(name, [1, j]));
                     }
                 }
             }
@@ -102,25 +102,53 @@ class DocFinder {
     find(terms) {
         let results = [];
         if (null != terms) {
-            const len = terms.length;
-            for (let k = 0; k < len; k++) {
-                const word = terms[k];
-                if (this.map1.has(word)) {
-                    let bookNames = this.map1.get(word).keys();
-                    //array of objects
+            let resultObject;
+            //calculation
+            //term 1 in which all book
+            let allbookNames = this.book(terms);
+            //now we have all the book names
+            let books = allbookNames.length;
+            let termValue = terms.length;
+            for (let i = 0; i < books; i++) {
+                // creating new object for every book name
+                resultObject = new Result();
+                resultObject.name = allbookNames[i];
+                let score = 0;
+                let lineIndex = [];
+                for (let j = 0; j < termValue; j++) {
+                    let bookArray = this.map1.get(terms[j]);
+                    if (bookArray.has(allbookNames[i])) {
+                        score = score + this.map1.get(terms[j]).get(allbookNames[i])[0];
+                        const line = this.bookLineMap.get(allbookNames[i])[this.map1.get(terms[j]).get(allbookNames[i])[1]] + "\n";
+                        if (!lineIndex.includes(line)) {
+                            lineIndex.push(line);
+                        }
+                    }
+                }
+                resultObject.score = score;
+                resultObject.lines = lineIndex;
+                results.push(resultObject);
+            }
+        }
+        return results;
+    }
 
-                    for (let name of bookNames) {
-                        let resultObject = new Result();
-                        resultObject.name = name;
-                        resultObject.score = this.map1.get(word).get(name)[0];
-                        let lineIndex = this.map1.get(word).get(name)[1];
-                        resultObject.lines = this.bookLineMap.get(name)[lineIndex] + "\n";
-                        results.push(resultObject);
+    book(terms) {
+        let len = terms.length;
+        let allBooks = [];
+        for (let i = 0; i < len; i++) {
+            const word = terms[i];
+            if (this.map1.has(word)) {
+                let allkeys = Array.from(this.map1.get(word).keys());
+                let arrayLen = allkeys.length;
+                for (let j = 0; j < arrayLen; j++) {
+                    if (!allBooks.includes(allkeys[j])) {
+                        allBooks.push(allkeys[j]);
                     }
                 }
             }
         }
-        return results;
+        return allBooks;
     }
 
     /** Given a text string, return a ordered list of all completions of
@@ -130,11 +158,12 @@ class DocFinder {
     complete(text) {
         let wordsFound = [];
         if (null != text) {
-            let arrayKey =  Array.from(this.map1.keys());
+            let arrayKey = Array.from(this.map1.keys());
             let length = arrayKey.length;
-            for (let i = 0 ; i < length ; i++) {
+            for (let i = 0; i < length; i++) {
                 if (arrayKey[i].includes(text)) {
-                    wordsFound.push(arrayKey[i]);
+                    if (arrayKey[i].toString().startsWith(text))
+                        wordsFound.push(arrayKey[i]);
                 }
             }
         }
