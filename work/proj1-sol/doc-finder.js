@@ -114,7 +114,7 @@ class DocFinder {
                         resultObject.name = name;
                         resultObject.score = this.map1.get(word).get(name)[0];
                         let lineIndex = this.map1.get(word).get(name)[1];
-                        resultObject.lines = this.bookLineMap.get(name)[lineIndex];
+                        resultObject.lines = this.bookLineMap.get(name)[lineIndex] + "\n";
                         results.push(resultObject);
                     }
                 }
@@ -128,8 +128,17 @@ class DocFinder {
      *  not alphabetic.
      */
     complete(text) {
-        //@TODO
-        return [];
+        let wordsFound = [];
+        if (null != text) {
+            let arrayKey =  Array.from(this.map1.keys());
+            let length = arrayKey.length;
+            for (let i = 0 ; i < length ; i++) {
+                if (arrayKey[i].includes(text)) {
+                    wordsFound.push(arrayKey[i]);
+                }
+            }
+        }
+        return wordsFound;
     }
 
 
