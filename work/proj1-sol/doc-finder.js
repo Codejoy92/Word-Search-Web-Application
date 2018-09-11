@@ -8,6 +8,7 @@ class DocFinder {
         this.noiseWordsIndex = new Set();
         this.finalWords = new Set();
         this.map1 = new Map();
+        this.bookLineMap = new Map();
     }
 
     /** Return array of non-noise normalized words from string content.
@@ -46,24 +47,38 @@ class DocFinder {
         this.noiseWordsIndex = new Set(noiseWords.split(/\s+/));
     }
 
-    addContent(name, content) {
+    addContent(name, content){
+     //   let wordsIndex = content.split(/\s+/);
 
-        let wordsIndex = content.split(/\s+/);
-        //   this.map1 = new Map();
-        const length = wordsIndex.length;
-        for (let i = 0; i < length; i++) {
-            const normalizedWord = this.words(wordsIndex[i]).toString();
-            if (!normalizedWord)
-                continue;
-            if (!this.map1.has(normalizedWord)) {
-                this.map1.set(normalizedWord, new Map().set(name, 1));
-            } else {
-                const tempMap = this.map1.get(normalizedWord);
-                if (tempMap.has(name)) {
-                    this.map1.set(normalizedWord, tempMap.set(name, tempMap.get(name) + 1));
-                  //  this.map1[normalizedWord][name] = tempMap.get(name) + 1;
+        let wordsIndexForLine = content.split(/\n+/);
+        //map for line offset with respect to the book
+        if(!this.bookLineMap.has(name)) {
+            this.bookLineMap.set(name, wordsIndexForLine);
+        }
+
+        const lengthOfBook = wordsIndexForLine.length;
+        //selecting a line from wordsIndexForLine
+        for(let j = 0 ; j < lengthOfBook ; j++) {
+            let wordsIndex = wordsIndexForLine[j].split(/\s+/);
+            const length = wordsIndex.length;
+
+            //iterating over selected line words
+            for (let i = 0; i < length; i++) {
+                const normalizedWord = this.words(wordsIndex[i]).toString();
+                if (!normalizedWord)
+                    continue;
+                if (!this.map1.has(normalizedWord)) {
+                    //when the word and the book is new
+                    this.map1.set(normalizedWord, new Map().set(name, [1, j]));
                 } else {
-                    this.map1.set(normalizedWord, tempMap.set(name, 1));
+                    const tempMap = this.map1.get(normalizedWord);
+                    if (tempMap.has(name)) {
+                        //when the word and book are in map
+                        this.map1.set(normalizedWord, tempMap.set(name, [tempMap.get(name)[0] + 1,tempMap.get(name)[1]] ));
+                    } else {
+                        //when the word is in map but book is different
+                        this.map1.set(normalizedWord, tempMap.set(name, [1,j]));
+                    }
                 }
             }
         }
