@@ -45,7 +45,7 @@ function doSearch(finder, rl, line) {
         out('no results\n');
     }
     else {
-        results.forEach((res) => out(`${res.name}: ${res.score}\n${res.lines}`));
+        results.forEach((res) => out(`${res.name}: ${res.score}\n${res.lines}\n`));
     }
     rl.prompt();
 }

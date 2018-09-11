@@ -100,8 +100,27 @@ class DocFinder {
      *
      */
     find(terms) {
-        //@TODO
-        return [];
+        let results = [];
+        if (null != terms) {
+            const len = terms.length;
+            for (let k = 0; k < len; k++) {
+                const word = terms[k];
+                if (this.map1.has(word)) {
+                    let bookNames = this.map1.get(word).keys();
+                    //array of objects
+
+                    for (let name of bookNames) {
+                        let resultObject = new Result();
+                        resultObject.name = name;
+                        resultObject.score = this.map1.get(word).get(name)[0];
+                        let lineIndex = this.map1.get(word).get(name)[1];
+                        resultObject.lines = this.bookLineMap.get(name)[lineIndex];
+                        results.push(resultObject);
+                    }
+                }
+            }
+        }
+        return results;
     }
 
     /** Given a text string, return a ordered list of all completions of
