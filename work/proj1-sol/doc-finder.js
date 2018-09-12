@@ -130,6 +130,7 @@ class DocFinder {
                 results.push(resultObject);
             }
         }
+        results.sort(compareResults);
         return results;
     }
 
