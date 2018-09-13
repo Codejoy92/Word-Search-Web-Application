@@ -159,6 +159,11 @@ class DocFinder {
     complete(text) {
         let wordsFound = [];
         if (null != text) {
+            let words  = text.match(WORD_REGEX);
+            if(words.length > 1){
+                text = words[words.length - 1];
+            }
+            text  = normalize(text);
             let arrayKey = Array.from(this.map1.keys());
             let length = arrayKey.length;
             for (let i = 0; i < length; i++) {
