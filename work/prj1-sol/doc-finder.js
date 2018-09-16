@@ -186,7 +186,7 @@ class DocFinder {
                 }
             }
         }
-        return wordsFound;
+        return wordsFound.sort();
     }
 
 
