@@ -115,13 +115,26 @@ class DocFinder {
                 resultObject.name = allbookNames[i];
                 let score = 0;
                 let lineIndex = [];
+                //creating temporary map
+                let lineMap = new Map();
                 for (let j = 0; j < termValue; j++) {
                     let bookArray = this.map1.get(terms[j]);
                     if (bookArray.has(allbookNames[i])) {
                         score = score + this.map1.get(terms[j]).get(allbookNames[i])[0];
                         const line = this.bookLineMap.get(allbookNames[i])[this.map1.get(terms[j]).get(allbookNames[i])[1]] + "\n";
                         if (!lineIndex.includes(line)) {
-                            lineIndex.push(line);
+                            lineMap.set(this.map1.get(terms[j]).get(allbookNames[i])[1],line);
+                            //sorting the map based on key values
+                            if(termValue === j+1) {
+                                let lineNo = Array.from(lineMap.keys());
+                                lineNo.sort(function(a, b){return a - b});
+                                //push all the lines in lineIndex
+                                let arrayLength = lineNo.length;
+                                for(let k = 0 ; k < arrayLength ; k++)
+                                {
+                                    lineIndex.push(lineMap.get(lineNo[k]));
+                                }
+                            }
                         }
                     }
                 }
