@@ -125,19 +125,19 @@ class DocFinder {
                         score = score + this.map1.get(terms[j]).get(allbookNames[i])[0];
                         const line = this.bookLineMap.get(allbookNames[i])[this.map1.get(terms[j]).get(allbookNames[i])[1]] + "\n";
                         if (!lineIndex.includes(line)) {
-                            lineMap.set(this.map1.get(terms[j]).get(allbookNames[i])[1],line);
+                            lineMap.set(this.map1.get(terms[j]).get(allbookNames[i])[1], line);
                         }
                     }
 
 
-
                 }
                 let lineNo = Array.from(lineMap.keys());
-                lineNo.sort(function(a, b){return a - b});
+                lineNo.sort(function (a, b) {
+                    return a - b
+                });
                 //push all the lines in lineIndex
                 let arrayLength = lineNo.length;
-                for(let k = 0 ; k < arrayLength ; k++)
-                {
+                for (let k = 0; k < arrayLength; k++) {
                     lineIndex.push(lineMap.get(lineNo[k]));
                 }
                 resultObject.score = score;
@@ -174,17 +174,19 @@ class DocFinder {
     complete(text) {
         let wordsFound = [];
         if (text) {
-            let words  = text.match(WORD_REGEX);
-            if(words.length > 1){
+            let words = text.match(WORD_REGEX);
+            if (words.length > 1) {
                 text = words[words.length - 1];
             }
-            text  = normalize(text);
-            let arrayKey = Array.from(this.map1.keys());
-            let length = arrayKey.length;
-            for (let i = 0; i < length; i++) {
-                if (arrayKey[i].includes(text)) {
-                    if (arrayKey[i].toString().startsWith(text))
-                        wordsFound.push(arrayKey[i]);
+            text = normalize(text);
+            if (text) {
+                let arrayKey = Array.from(this.map1.keys());
+                let length = arrayKey.length;
+                for (let i = 0; i < length; i++) {
+                    if (arrayKey[i].includes(text)) {
+                        if (arrayKey[i].toString().startsWith(text))
+                            wordsFound.push(arrayKey[i]);
+                    }
                 }
             }
         }
