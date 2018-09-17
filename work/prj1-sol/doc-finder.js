@@ -173,7 +173,7 @@ class DocFinder {
      */
     complete(text) {
         let wordsFound = [];
-        if (null != text) {
+        if (text) {
             let words  = text.match(WORD_REGEX);
             if(words.length > 1){
                 text = words[words.length - 1];
