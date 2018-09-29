@@ -19,6 +19,12 @@ class DocFinder {
    *  hosts the persistent content provided by this class.
    */
   constructor(dbUrl) {
+
+
+      let seprator  = dbUrl.lastIndexOf("/");
+      this.url = dbUrl.substring(0,seprator);
+      this.dbName = dbUrl.slice(seprator + 1);
+
     //TODO
   }
 
@@ -27,7 +33,10 @@ class DocFinder {
    *  immediately after creating a new instance of this.
    */
   async init() {
-    //TODO
+      const client = await mongo.connect(this.url,{ useNewUrlParser: true });
+   //   console.log(client);
+      const db = client.db(this.dbName);
+   //   console.log(db);
   }
 
   /** Release all resources held by this doc-finder.  Specifically,
