@@ -116,10 +116,10 @@ class DocFinder {
         try {
             //let cursor = this.wordsIndexTable.find(WORDS_INDEX_TABLE).toArray(function(err, documents){});
             this.exisitingWordIndex  = await this.wordsIndexTable.find({}).toArray();
-            this.finalArray = this.allNoiseWords.map(function (obj) {
-                return obj._id;
-            });
-            this.noiseWordsIndex = new Set(this.finalArray);
+
+            existingWordObject = {function(){
+                
+                }};
 
         } catch (e) {
             console.error(e);
