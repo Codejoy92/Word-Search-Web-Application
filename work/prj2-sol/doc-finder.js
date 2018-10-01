@@ -101,7 +101,7 @@ class DocFinder {
         //updating line indexing in database
         await this.pushContents(name, wordsIndexForLine);
         //get existing values from database
-        //this.wordIndexObject = await this.getMapFromDatabase();
+        this.wordIndexObject = await this.getMapFromDatabase();
         //set those values in finalMap and pass it to operations
         if (!this.wordIndexObject) this.wordIndexObject = {};
 
@@ -112,15 +112,19 @@ class DocFinder {
     }
     async getMapFromDatabase() {
         //get the word index collections
-        this.getMap = new Map();
+        let existingWordObject = {};
         try {
             //let cursor = this.wordsIndexTable.find(WORDS_INDEX_TABLE).toArray(function(err, documents){});
+            this.exisitingWordIndex  = await this.wordsIndexTable.find({}).toArray();
+            this.finalArray = this.allNoiseWords.map(function (obj) {
+                return obj._id;
+            });
+            this.noiseWordsIndex = new Set(this.finalArray);
 
-            this.getMap = cursor;
         } catch (e) {
             console.error(e);
         }
-       return this.getMap;
+       return existingWordObject;
     }
 
   async operations(lengthOfBook, wordsIndexForLine, name, object) {
