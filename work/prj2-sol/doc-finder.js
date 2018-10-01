@@ -21,6 +21,9 @@ class DocFinder {
         let separator = dbUrl.lastIndexOf("/");
         this.url = dbUrl.substring(0, separator);
         this.dbName = dbUrl.slice(separator + 1);
+        this.noiseWordsIndex = new Set();
+        this.allNoiseWords = [] ;
+
     }
 
     /** This routine is used for all asynchronous initialization
@@ -30,7 +33,9 @@ class DocFinder {
     async init() {
         this.client = await mongo.connect(this.url, MONGO_OPTIONS);
         this.db = this.client.db(this.dbName);
-        this.contentsTable = this.db.collection(CONTENTS_TABLE);
+        this.lineIndexTable = this.db.collection(LINE_INDEX_TABLE);
+        this.wordsIndexTable = this.db.collection(WORDS_INDEX_TABLE);
+        this.noiseWordsTable = this.db.collection(NOISE_WORDS_TABLE);
     }
 
     /** Release all resources held by this doc-finder.  Specifically,
@@ -51,29 +56,120 @@ class DocFinder {
      *  words are lower-cased, have been stemmed and all non-alphabetic
      *  characters matching regex [^a-z] have been removed.
      */
-    async words(contentText) {
-      return[];
-    }
+     async words(content) {
+        const splitWords = content.match(WORD_REGEX);
+
+        let localWords = [];
+        if (null != splitWords) {
+            for (let word of splitWords) {
+                if (word === null)
+                    continue;
+                const keyword = normalize(word);
+                if (keyword === null)
+                    continue;
+                if (!this.noiseWordsIndex.has(keyword)) {
+                  //  this.finalWords.add(keyword);
+                    localWords.push(keyword);
+                }
+            }
+        }
+        return localWords;
+
+     }
 
     /** Add all normalized words in the noiseText string to this as
      *  noise words.  This operation should be idempotent.
      */
     async addNoiseWords(noiseText) {
-
+        this.noiseWordsIndex = new Set(noiseText.split(/\s+/));
+        const noiseArray = Array.from(this.noiseWordsIndex);
+     //   const noiseDocs = noiseArray.map(n => ({_id: n}));
+      //  await this.noiseWordsTable.updateOne({_id: NOISEWORDSID},{$set: {'words': noiseArray}},{upsert: true});
+        const noiseDocs = noiseArray.map(n => ({_id: n}));
+        await this.noiseWordsTable.insertMany(noiseDocs);
     }
-
     /** Add document named by string name with specified content string
      *  contentText to this instance. Update index in this with all
      *  non-noise normalized words in contentText string.
      *  This operation should be idempotent.
      */
     async addContent(name, contentText) {
-        if (!contentText.endsWith('\n')) {
-            contentText = contentText + '\n';
+        if (!contentText.endsWith('\n')) contentText = contentText + '\n';
+        this.finalMap = new Map();
+        let wordsIndexForLine = contentText.split(/\n+/);
+        const lengthOfBook = wordsIndexForLine.length;
+        //updating line indexing in database
+        await this.pushContents(name, wordsIndexForLine);
+        //get existing values from database
+        this.finalMap = await this.getMapFromDatabase();
+        //set those values in finalMap and pass it to operations
+        if (!this.finalMap) this.finalMap = new Map();
+
+        this.finalMap = await this.operations(lengthOfBook, wordsIndexForLine, name, this.finalMap);
+        //update finalMap into database
+        await this.pushWords(this.finalMap);
+
+    }
+    async getMapFromDatabase() {
+        //get the word index collections
+        this.getMap = new Map();
+        try {
+            //let cursor = this.wordsIndexTable.find(WORDS_INDEX_TABLE).toArray(function(err, documents){});
+
+            this.getMap = cursor;
+        } catch (e) {
+            console.error(e);
         }
-        await this.pushContents(name, contentText);
+       return this.getMap;
     }
 
+  async operations(lengthOfBook, wordsIndexForLine, name, latestMap) {
+        //get all noise words start
+        this.allNoiseWords  = await this.noiseWordsTable.find({}).toArray();
+         this.finalArray = this.allNoiseWords.map(function (obj) {
+              return obj._id;
+          });
+        this.noiseWordsIndex = new Set(this.finalArray);
+        //get all noise words ends
+
+      //old code starts
+        for (let j = 0; j < lengthOfBook; j++) {
+            let wordsIndex = wordsIndexForLine[j].split(/\s+/);
+            const length = wordsIndex.length;
+            //iterating over selected line words
+            for (let i = 0; i < length; i++) {
+                const word = await this.words(wordsIndex[i]);
+                const normalizedWord = word.toString();
+                if (!normalizedWord)
+                    continue;
+                if (!latestMap.has(normalizedWord)) {
+                    //when the word and the book is new
+                    latestMap.set(normalizedWord, new Map().set(name, [1, j]));
+                } else {
+                    const tempMap = latestMap.get(normalizedWord);
+                    if (tempMap.has(name)) {
+                        //when the word and book are in map
+                        latestMap.set(normalizedWord, tempMap.set(name, [tempMap.get(name)[0] + 1, tempMap.get(name)[1]]));
+                    } else {
+                        //when the word is in map but book is different
+                        latestMap.set(normalizedWord, tempMap.set(name, [1, j]));
+                    }
+                }
+            }
+
+        }
+        //old code ends
+    return latestMap;
+    }
+
+    pushContents(name, wordsIndexForLine) {
+        try {
+            let feedback = this.lineIndexTable.updateOne({'_id': name}, {$set: {'contentText': wordsIndexForLine}}, {upsert : true});
+            console.log(feedback);
+        } catch (e) {
+            console.error(e);
+        }
+    }
     /** Return contents of document name.  If not found, throw an Error
      *  object with property code set to 'NOT_FOUND' and property
      *  message set to `doc ${name} not found`.
@@ -114,14 +210,22 @@ class DocFinder {
 
 
     //Add private methods as necessary
-    pushContents(name, contentText) {
+
+
+    createIndexing(contentText) {
+
+    }
+
+    pushWords(saveMap) {
         try {
-            let feedback = this.contentsTable.insertOne({'_id': name, 'contentText': contentText});
+            let feedback = this.wordsIndexTable.updateOne({'_id': name}, {$set: {'wordIndex': index}}, {upsert : true});
             console.log(feedback);
         } catch (e) {
             console.error(e);
         }
     }
+
+
 }//class DocFinder
 
 module.exports = DocFinder;
@@ -171,6 +275,7 @@ function stem(word) {
     return word.replace(/\'s$/, '');
 }
 
-const CONTENTS_TABLE = 'contents_Table';
-
-
+const LINE_INDEX_TABLE = 'line_index_table';
+const WORDS_INDEX_TABLE = 'words_index_table';
+const NOISE_WORDS_TABLE = 'noise_words_table';
+const NOISEWORDSID = 'n';
