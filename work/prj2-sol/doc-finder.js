@@ -95,19 +95,19 @@ class DocFinder {
      */
     async addContent(name, contentText) {
         if (!contentText.endsWith('\n')) contentText = contentText + '\n';
-        this.finalMap = new Map();
+        this.wordIndexObject = {};
         let wordsIndexForLine = contentText.split(/\n+/);
         const lengthOfBook = wordsIndexForLine.length;
         //updating line indexing in database
         await this.pushContents(name, wordsIndexForLine);
         //get existing values from database
-        this.finalMap = await this.getMapFromDatabase();
+        //this.wordIndexObject = await this.getMapFromDatabase();
         //set those values in finalMap and pass it to operations
-        if (!this.finalMap) this.finalMap = new Map();
+        if (!this.wordIndexObject) this.wordIndexObject = {};
 
-        this.finalMap = await this.operations(lengthOfBook, wordsIndexForLine, name, this.finalMap);
+        this.wordIndexObject = await this.operations(lengthOfBook, wordsIndexForLine, name, this.wordIndexObject);
         //update finalMap into database
-        await this.pushWords(this.finalMap);
+        await this.pushWords(this.wordIndexObject);
 
     }
     async getMapFromDatabase() {
@@ -123,7 +123,7 @@ class DocFinder {
        return this.getMap;
     }
 
-  async operations(lengthOfBook, wordsIndexForLine, name, latestMap) {
+  async operations(lengthOfBook, wordsIndexForLine, name, object) {
         //get all noise words start
         this.allNoiseWords  = await this.noiseWordsTable.find({}).toArray();
          this.finalArray = this.allNoiseWords.map(function (obj) {
@@ -142,27 +142,41 @@ class DocFinder {
                 const normalizedWord = word.toString();
                 if (!normalizedWord)
                     continue;
-                if (!latestMap.has(normalizedWord)) {
+                if (!object.hasOwnProperty(normalizedWord)) {
                     //when the word and the book is new
-                    latestMap.set(normalizedWord, new Map().set(name, [1, j]));
+                 //   object.set(normalizedWord, new Map().set(name, [1, j]));
+                    object[normalizedWord] = {bookName: name, score: 1, lineIndex: j }
                 } else {
-                    const tempMap = latestMap.get(normalizedWord);
-                    if (tempMap.has(name)) {
+                //    const tempMap = object[normalizedWord];
+                    if (object[normalizedWord]['bookName'] === name) {
                         //when the word and book are in map
-                        latestMap.set(normalizedWord, tempMap.set(name, [tempMap.get(name)[0] + 1, tempMap.get(name)[1]]));
+                        //object.set(normalizedWord, tempMap.set(name, [tempMap.get(name)[0] + 1, tempMap.get(name)[1]]));
+                        let tempObj = object[normalizedWord];
+                        object[normalizedWord] = {bookName: tempObj.bookName , score: tempObj.score + 1, lineIndex: tempObj.lineIndex}
                     } else {
                         //when the word is in map but book is different
-                        latestMap.set(normalizedWord, tempMap.set(name, [1, j]));
+                       // object.set(normalizedWord, tempMap.set(name, [1, j]));
+                        let tempObj = object[normalizedWord];
+                        object[normalizedWord] = {bookName: tempObj.bookName , score: tempObj.score + 1,lineIndex: j}
                     }
                 }
             }
 
         }
         //old code ends
-    return latestMap;
+    return object;
     }
+   async pushWords(wordIndexObject) {
+        try {
+          //  let feedback = this.wordsIndexTable.updateOne({'_id': name}, {$set: {'wordIndex': index}}, {upsert : true});
 
-    pushContents(name, wordsIndexForLine) {
+            await this.wordsIndexTable.insertMany([wordIndexObject]);
+
+        } catch (e) {
+            console.error(e);
+        }
+    }
+   async pushContents(name, wordsIndexForLine) {
         try {
             let feedback = this.lineIndexTable.updateOne({'_id': name}, {$set: {'contentText': wordsIndexForLine}}, {upsert : true});
             console.log(feedback);
@@ -216,14 +230,7 @@ class DocFinder {
 
     }
 
-    pushWords(saveMap) {
-        try {
-            let feedback = this.wordsIndexTable.updateOne({'_id': name}, {$set: {'wordIndex': index}}, {upsert : true});
-            console.log(feedback);
-        } catch (e) {
-            console.error(e);
-        }
-    }
+
 
 
 }//class DocFinder
