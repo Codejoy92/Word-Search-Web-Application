@@ -23,6 +23,7 @@ class DocFinder {
         this.dbName = dbUrl.slice(separator + 1);
         this.noiseWordsIndex = new Set();
         this.allNoiseWords = [] ;
+        this.wordIndexObject = {};
 
     }
 
@@ -95,15 +96,14 @@ class DocFinder {
      */
     async addContent(name, contentText) {
         if (!contentText.endsWith('\n')) contentText = contentText + '\n';
-        this.wordIndexObject = {};
+
         let wordsIndexForLine = contentText.split(/\n+/);
         const lengthOfBook = wordsIndexForLine.length;
         //updating line indexing in database
         await this.pushContents(name, wordsIndexForLine);
         //get existing values from database
-        this.wordIndexObject = await this.getMapFromDatabase();
+        //this.wordIndexObject = await this.getMapFromDatabase();
         //set those values in finalMap and pass it to operations
-        if (!this.wordIndexObject) this.wordIndexObject = {};
 
         this.wordIndexObject = await this.operations(lengthOfBook, wordsIndexForLine, name, this.wordIndexObject);
         //update finalMap into database
@@ -115,12 +115,13 @@ class DocFinder {
         let existingWordObject = {};
         try {
             //let cursor = this.wordsIndexTable.find(WORDS_INDEX_TABLE).toArray(function(err, documents){});
-            this.exisitingWordIndex  = await this.wordsIndexTable.find({}).toArray();
-
-            existingWordObject = {function(){
-                
-                }};
-
+            this.exisitingWordIndex  = await this.wordsIndexTable.findOne({'_id': NOISEWORDSID});
+            let objectKeys =  Object.keys(this.exisitingWordIndex);
+            let length = objectKeys.length;
+            for(let i = 1 ; i <=length ;i++){
+                existingWordObject[objectKeys[i]] = this.exisitingWordIndex[objectKeys[i]];
+            }
+            //convert array into object
         } catch (e) {
             console.error(e);
         }
@@ -137,45 +138,50 @@ class DocFinder {
         //get all noise words ends
 
       //old code starts
-        for (let j = 0; j < lengthOfBook; j++) {
-            let wordsIndex = wordsIndexForLine[j].split(/\s+/);
-            const length = wordsIndex.length;
-            //iterating over selected line words
-            for (let i = 0; i < length; i++) {
-                const word = await this.words(wordsIndex[i]);
-                const normalizedWord = word.toString();
-                if (!normalizedWord)
-                    continue;
-                if (!object.hasOwnProperty(normalizedWord)) {
-                    //when the word and the book is new
-                 //   object.set(normalizedWord, new Map().set(name, [1, j]));
-                    object[normalizedWord] = {bookName: name, score: 1, lineIndex: j }
-                } else {
-                //    const tempMap = object[normalizedWord];
-                    if (object[normalizedWord]['bookName'] === name) {
-                        //when the word and book are in map
-                        //object.set(normalizedWord, tempMap.set(name, [tempMap.get(name)[0] + 1, tempMap.get(name)[1]]));
-                        let tempObj = object[normalizedWord];
-                        object[normalizedWord] = {bookName: tempObj.bookName , score: tempObj.score + 1, lineIndex: tempObj.lineIndex}
-                    } else {
-                        //when the word is in map but book is different
-                       // object.set(normalizedWord, tempMap.set(name, [1, j]));
-                        let tempObj = object[normalizedWord];
-                        object[normalizedWord] = {bookName: tempObj.bookName , score: tempObj.score + 1,lineIndex: j}
-                    }
-                }
-            }
 
-        }
+      for (let j = 0; j < lengthOfBook; j++) {
+          let wordsIndex = wordsIndexForLine[j].split(/\s+/);
+          const length = wordsIndex.length;
+
+          //iterating over selected line words
+          for (let i = 0; i < length; i++) {
+              const word = await this.words(wordsIndex[i]);
+              const normalizedWord = word.toString();
+
+              if (!normalizedWord)
+                  continue;
+              if (!object.hasOwnProperty(normalizedWord)) {
+                  //when the word and the book is new
+                  object[normalizedWord] = {};
+                  object[normalizedWord][name] = {};
+                  object[normalizedWord][name]['score'] = 1;
+                  object[normalizedWord][name]['lineIndex'] = j;
+              } else {
+
+                  if (object[normalizedWord].hasOwnProperty(name)) {
+                      //when the word and book are in map
+                      let score  = object[normalizedWord][name].score;
+                      object[normalizedWord][name]['score'] = ++score;
+                  } else {
+                      //when the word is in map but book is different
+                      object[normalizedWord][name] = {};
+                      object[normalizedWord][name]['score'] = 1;
+                      object[normalizedWord][name]['lineIndex'] = j;
+                  }
+              }
+          }
+      }
         //old code ends
     return object;
     }
    async pushWords(wordIndexObject) {
         try {
           //  let feedback = this.wordsIndexTable.updateOne({'_id': name}, {$set: {'wordIndex': index}}, {upsert : true});
-
-            await this.wordsIndexTable.insertMany([wordIndexObject]);
-
+           // await this.wordsIndexTable.insertMany([wordIndexObject]);
+            for(let word of Object.entries(wordIndexObject)) {
+                let struct = word[1];
+                await this.wordsIndexTable.updateOne({'_id': word[0]}, {$set:{'bookname':struct}}, {upsert: true});
+            }
         } catch (e) {
             console.error(e);
         }
@@ -183,7 +189,7 @@ class DocFinder {
    async pushContents(name, wordsIndexForLine) {
         try {
             let feedback = this.lineIndexTable.updateOne({'_id': name}, {$set: {'contentText': wordsIndexForLine}}, {upsert : true});
-            console.log(feedback);
+           // console.log(feedback);
         } catch (e) {
             console.error(e);
         }
