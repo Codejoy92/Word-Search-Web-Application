@@ -24,7 +24,6 @@ class DocFinder {
         this.noiseWordsIndex = new Set();
         this.allNoiseWords = [];
         this.wordIndexObject = {};
-
     }
 
     /** This routine is used for all asynchronous initialization
@@ -60,7 +59,6 @@ class DocFinder {
      */
     async words(content) {
         const splitWords = content.match(WORD_REGEX);
-
         let localWords = [];
         if (null != splitWords) {
             for (let word of splitWords) {
@@ -70,7 +68,6 @@ class DocFinder {
                 if (keyword === null)
                     continue;
                 if (!this.noiseWordsIndex.has(keyword)) {
-                    //  this.finalWords.add(keyword);
                     localWords.push(keyword);
                 }
             }
@@ -85,8 +82,6 @@ class DocFinder {
     async addNoiseWords(noiseText) {
         this.noiseWordsIndex = new Set(noiseText.split(/\s+/));
         const noiseArray = Array.from(this.noiseWordsIndex);
-        //   const noiseDocs = noiseArray.map(n => ({_id: n}));
-        //  await this.noiseWordsTable.updateOne({_id: NOISEWORDSID},{$set: {'words': noiseArray}},{upsert: true});
         const noiseDocs = noiseArray.map(n => ({_id: n}));
         await this.noiseWordsTable.insertMany(noiseDocs);
     }
@@ -98,20 +93,13 @@ class DocFinder {
      */
     async addContent(name, contentText) {
         if (!contentText.endsWith('\n')) contentText = contentText + '\n';
-
         let wordsIndexForLine = contentText.split(/\n+/);
         const lengthOfBook = wordsIndexForLine.length;
         //updating line indexing in database
         await this.pushLineIndex(name, wordsIndexForLine);
         await this.pushContents(name, contentText);
-        //get existing values from database
-        //this.wordIndexObject = await this.getMapFromDatabase();
-        //set those values in finalMap and pass it to operations
-
         this.wordIndexObject = await this.operations(lengthOfBook, wordsIndexForLine, name, this.wordIndexObject);
-        //update finalMap into database
         await this.pushWords(this.wordIndexObject);
-
     }
 
     /*    async getMapFromDatabase() {
@@ -178,8 +166,6 @@ class DocFinder {
 
     async pushWords(wordIndexObject) {
         try {
-            //  let feedback = this.wordsIndexTable.updateOne({'_id': name}, {$set: {'wordIndex': index}}, {upsert : true});
-            // await this.wordsIndexTable.insertMany([wordIndexObject]);
             for (let word of Object.entries(wordIndexObject)) {
                 let struct = word[1];
                 await this.wordsIndexTable.updateOne({'_id': word[0]}, {$set: {'bookname': struct}}, {upsert: true});
@@ -191,7 +177,7 @@ class DocFinder {
 
     async pushLineIndex(name, wordsIndexForLine) {
         try {
-            this.lineIndexTable.updateOne({'_id': name}, {$set: {'contentText': wordsIndexForLine}}, {upsert: true});
+            await this.lineIndexTable.updateOne({'_id': name}, {$set: {'contentText': wordsIndexForLine}}, {upsert: true});
         } catch (e) {
             console.error(e);
         }
@@ -199,7 +185,7 @@ class DocFinder {
 
     async pushContents(name, wordsIndexForLine) {
         try {
-            this.contentsTable.updateOne({'_id': name}, {$set: {'contentText': wordsIndexForLine}}, {upsert: true});
+            await this.contentsTable.updateOne({'_id': name}, {$set: {'contentText': wordsIndexForLine}}, {upsert: true});
         } catch (e) {
             console.error(e);
         }
@@ -241,7 +227,73 @@ class DocFinder {
      *
      */
     async find(terms) {
-        return [];
+        let results = [];
+
+        if (null != terms) {
+            let resultObject;
+
+            let doc = await this.wordsIndexTable.find({}).toArray();
+            let docValues = doc.map(function (value) {
+                return value._id;
+            });
+
+            let allbookNames = this.book(terms, docValues, doc);
+            let books = allbookNames.length;
+            let termValue = terms.length;
+            for (let i = 0; i < books; i++) {
+                // creating new object for every book name
+                resultObject = new Result();
+                resultObject.name = allbookNames[i];
+                let score = 0;
+                let lineIndex = [];
+                //creating temporary map
+                let lineMap = new Map();
+                for (let j = 0; j < termValue; j++) {
+                    let bookArray = this.finalMap.get(terms[j]);
+
+                    if (typeof(bookArray) !== "undefined" && bookArray.has(allbookNames[i])) {
+                        score = score + this.finalMap.get(terms[j]).get(allbookNames[i])[0];
+                        const line = this.bookLineMap.get(allbookNames[i])[this.finalMap.get(terms[j]).get(allbookNames[i])[1]] + "\n";
+                        if (!lineIndex.includes(line)) {
+                            lineMap.set(this.finalMap.get(terms[j]).get(allbookNames[i])[1], line);
+                        }
+                    }
+                }
+                let lineNo = Array.from(lineMap.keys());
+                lineNo.sort(function (a, b) {
+                    return a - b
+                });
+                //push all the lines in lineIndex
+                let arrayLength = lineNo.length;
+                for (let k = 0; k < arrayLength; k++) {
+                    lineIndex.push(lineMap.get(lineNo[k]));
+                }
+                resultObject.score = score;
+                resultObject.lines = lineIndex;
+                results.push(resultObject);
+            }
+        }
+        results.sort(compareResults);
+        return results;
+    }
+    book(terms, docValues, doc) {
+        let len = terms.length;
+        let allBooks = [];
+        for (let i = 0; i < len; i++) {
+            const word = terms[i];
+            if (docValues.includes(word)) {
+                let allkeys = new Set( (doc.map(function (value) {
+                    let outerObj = value.bookname;
+                    return Object.getOwnPropertyNames(outerObj)[0];
+                })));
+                for(let key of allkeys){
+                    if(!allBooks.includes(key)){
+                        allBooks.push(key);
+                    }
+                }
+            }
+        }
+        return allBooks;
     }
 
     /** Given a text string, return a ordered list of all completions of
@@ -249,7 +301,7 @@ class DocFinder {
      *  in text is not alphabetic.
      */
     async complete(text) {
-        let wordsFound = [];
+
         if (!text.match(/[a-zA-Z]$/)) {
             return [];
         }
@@ -258,7 +310,6 @@ class DocFinder {
         let docValues = doc.map(function (value) {
             return value._id;
         });
-
         return docValues.filter((w) => w.startsWith(word));
     }
 
@@ -316,4 +367,3 @@ const LINE_INDEX_TABLE = 'line_index_table';
 const CONTENT_TABLE = 'content_table';
 const WORDS_INDEX_TABLE = 'words_index_table';
 const NOISE_WORDS_TABLE = 'noise_words_table';
-const NOISEWORDSID = 'n';
