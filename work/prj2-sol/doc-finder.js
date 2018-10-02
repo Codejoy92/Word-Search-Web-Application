@@ -153,9 +153,7 @@ class DocFinder {
               if (!object.hasOwnProperty(normalizedWord)) {
                   //when the word and the book is new
                   object[normalizedWord] = {};
-                  object[normalizedWord][name] = {};
-                  object[normalizedWord][name]['score'] = 1;
-                  object[normalizedWord][name]['lineIndex'] = j;
+                  object[normalizedWord][name] = {score: 1,  lineIndex: j};
               } else {
 
                   if (object[normalizedWord].hasOwnProperty(name)) {
@@ -165,8 +163,7 @@ class DocFinder {
                   } else {
                       //when the word is in map but book is different
                       object[normalizedWord][name] = {};
-                      object[normalizedWord][name]['score'] = 1;
-                      object[normalizedWord][name]['lineIndex'] = j;
+                      object[normalizedWord][name] = {score: 1,  lineIndex: j};
                   }
               }
           }
