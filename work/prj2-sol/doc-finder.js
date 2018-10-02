@@ -37,6 +37,7 @@ class DocFinder {
         this.lineIndexTable = this.db.collection(LINE_INDEX_TABLE);
         this.wordsIndexTable = this.db.collection(WORDS_INDEX_TABLE);
         this.noiseWordsTable = this.db.collection(NOISE_WORDS_TABLE);
+        this.contentsTable = this.db.collection(CONTENT_TABLE);
     }
 
     /** Release all resources held by this doc-finder.  Specifically,
@@ -100,7 +101,8 @@ class DocFinder {
         let wordsIndexForLine = contentText.split(/\n+/);
         const lengthOfBook = wordsIndexForLine.length;
         //updating line indexing in database
-        await this.pushContents(name, wordsIndexForLine);
+        await this.pushLineIndex(name, wordsIndexForLine);
+        await this.pushContents(name, contentText);
         //get existing values from database
         //this.wordIndexObject = await this.getMapFromDatabase();
         //set those values in finalMap and pass it to operations
@@ -110,7 +112,7 @@ class DocFinder {
         await this.pushWords(this.wordIndexObject);
 
     }
-    async getMapFromDatabase() {
+/*    async getMapFromDatabase() {
         //get the word index collections
         let existingWordObject = {};
         try {
@@ -126,7 +128,7 @@ class DocFinder {
             console.error(e);
         }
        return existingWordObject;
-    }
+    }*/
 
   async operations(lengthOfBook, wordsIndexForLine, name, object) {
         //get all noise words start
@@ -183,10 +185,17 @@ class DocFinder {
             console.error(e);
         }
     }
-   async pushContents(name, wordsIndexForLine) {
+   async pushLineIndex(name, wordsIndexForLine) {
         try {
-            let feedback = this.lineIndexTable.updateOne({'_id': name}, {$set: {'contentText': wordsIndexForLine}}, {upsert : true});
-           // console.log(feedback);
+            this.lineIndexTable.updateOne({'_id': name}, {$set: {'contentText': wordsIndexForLine}}, {upsert : true});
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    pushContents(name, wordsIndexForLine) {
+        try {
+            this.contentsTable.updateOne({'_id': name}, {$set: {'contentText': wordsIndexForLine}}, {upsert : true});
         } catch (e) {
             console.error(e);
         }
@@ -196,7 +205,15 @@ class DocFinder {
      *  message set to `doc ${name} not found`.
      */
     async docContent(name) {
-        return '';
+        let doc =  await this.contentsTable.findOne({_id: name});
+        if(doc){
+            return doc.contentText.toString();
+        }
+        else{
+            const err = new Error('doc ${name} not found');
+            err.code = 'NOT FOUND';
+            throw err;
+        }
     }
 
     /** Given a list of normalized, non-noise words search terms,
@@ -228,16 +245,6 @@ class DocFinder {
     async complete(text) {
         return [];
     }
-
-
-    //Add private methods as necessary
-
-
-    createIndexing(contentText) {
-
-    }
-
-
 
 
 }//class DocFinder
@@ -290,6 +297,7 @@ function stem(word) {
 }
 
 const LINE_INDEX_TABLE = 'line_index_table';
+const CONTENT_TABLE = 'content_table';
 const WORDS_INDEX_TABLE = 'words_index_table';
 const NOISE_WORDS_TABLE = 'noise_words_table';
 const NOISEWORDSID = 'n';
