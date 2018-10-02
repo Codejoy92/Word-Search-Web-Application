@@ -205,13 +205,14 @@ class DocFinder {
      *  message set to `doc ${name} not found`.
      */
     async docContent(name) {
-        let doc =  await this.contentsTable.findOne({_id: name});
+        const doc =  await this.contentsTable.findOne({_id: name});
         if(doc){
             return doc.contentText.toString();
         }
         else{
-            const err = new Error('doc ${name} not found');
-            err.code = 'NOT FOUND';
+            let text = 'doc ' + name + ' not found';
+            const err = new Error(text);
+            err.code = 'NOT_FOUND';
             throw err;
         }
     }
