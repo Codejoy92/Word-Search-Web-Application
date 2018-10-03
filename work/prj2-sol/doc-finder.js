@@ -230,33 +230,57 @@ class DocFinder {
         let results = [];
 
         if (null != terms) {
+
             let resultObject;
-
-            let doc = await this.wordsIndexTable.find({}).toArray();
-            let docValues = doc.map(function (value) {
-                return value._id;
-            });
-
-            let allbookNames = this.book(terms, docValues, doc);
-            let books = allbookNames.length;
             let termValue = terms.length;
+            this.doc =[];
+            //code to get all unique books start
+            this.allbooknames = [];
+            for(let k = 0 ; k < termValue ; k++ ){
+                this.doc.push(await this.wordsIndexTable.findOne({_id:terms[k]}));
+                this.book=this.doc[k].bookname;
+                this.bookvalues =Object.getOwnPropertyNames(this.book);
+                for(let entry of this.bookvalues) {
+                    if(!this.allbooknames.includes(entry))
+                    this.allbooknames.push(entry);
+                }
+            }
+            //code to get all unique books end
+
+            let books = this.allbooknames.length;
             for (let i = 0; i < books; i++) {
                 // creating new object for every book name
                 resultObject = new Result();
-                resultObject.name = allbookNames[i];
+                resultObject.name = this.allbooknames[i];
                 let score = 0;
                 let lineIndex = [];
                 //creating temporary map
                 let lineMap = new Map();
+                let bookArray = [];
                 for (let j = 0; j < termValue; j++) {
-                    let bookArray = this.finalMap.get(terms[j]);
+                    //get all books for particular word
+                    bookArray = this.doc[j].bookname;
+                    let bookName =Object.getOwnPropertyNames(bookArray);
+                   // let bookArray = this.finalMap.get(terms[j]);
 
-                    if (typeof(bookArray) !== "undefined" && bookArray.has(allbookNames[i])) {
-                        score = score + this.finalMap.get(terms[j]).get(allbookNames[i])[0];
+                   if (typeof(bookArray) !== "undefined" && bookName.includes(this.allbooknames[i])) {
+                        // get score from database table
+                        for(let variable of bookName){
+                            if(variable === this.allbooknames[i]){
+                                score = score + bookArray[this.allbooknames[i]].score;
+                            }
+                        }
+
+                        //get line from database table
                         const line = this.bookLineMap.get(allbookNames[i])[this.finalMap.get(terms[j]).get(allbookNames[i])[1]] + "\n";
+
+                        //checking if line is already taken
                         if (!lineIndex.includes(line)) {
+                           // set line
                             lineMap.set(this.finalMap.get(terms[j]).get(allbookNames[i])[1], line);
                         }
+
+
                     }
                 }
                 let lineNo = Array.from(lineMap.keys());
@@ -276,7 +300,10 @@ class DocFinder {
         results.sort(compareResults);
         return results;
     }
-    book(terms, docValues, doc) {
+    book(terms, doc) {
+
+
+        /*
         let len = terms.length;
         let allBooks = [];
         for (let i = 0; i < len; i++) {
@@ -293,7 +320,7 @@ class DocFinder {
                 }
             }
         }
-        return allBooks;
+        return allBooks;*/
     }
 
     /** Given a text string, return a ordered list of all completions of
