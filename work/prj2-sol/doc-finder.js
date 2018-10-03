@@ -39,11 +39,11 @@ class DocFinder {
         this.contentsTable = this.db.collection(CONTENT_TABLE);
     }
 
-    /** Release all resources held by this doc-finder.  Specifically,
+    /** Release all resources held by this document-finder.  Specifically,
      *  close any database connections.
      */
     async close() {
-        await this.client.close();
+        await this.client.close(true, function(){});
     }
 
     /** Clear database */
@@ -91,6 +91,7 @@ class DocFinder {
      *  This operation should be idempotent.
      */
     async addContent(name, contentText) {
+      //  console.log('Reading.. '+name);
         if (!contentText.endsWith('\n')) contentText = contentText + '\n';
         let wordsIndexForLine = contentText.split(/\n+/);
         const lengthOfBook = wordsIndexForLine.length;
@@ -99,6 +100,7 @@ class DocFinder {
         await this.pushContents(name, contentText);
         this.wordIndexObject = await this.operations(lengthOfBook, wordsIndexForLine, name, this.wordIndexObject);
         await this.pushWords(this.wordIndexObject);
+      //  console.log('completed Reading.. '+name);
     }
 
     async operations(lengthOfBook, wordsIndexForLine, name, object) {
@@ -173,7 +175,7 @@ class DocFinder {
 
     /** Return contents of document name.  If not found, throw an Error
      *  object with property code set to 'NOT_FOUND' and property
-     *  message set to `doc ${name} not found`.
+     *  message set to `document ${name} not found`.
      */
     async docContent(name) {
         const doc = await this.contentsTable.findOne({_id: name});
@@ -181,7 +183,7 @@ class DocFinder {
             return doc.contentText.toString();
         }
         else {
-            let text = 'doc ' + name + ' not found';
+            let text = 'document ' + name + ' not found';
             const err = new Error(text);
             err.code = 'NOT_FOUND';
             throw err;
@@ -213,57 +215,47 @@ class DocFinder {
 
             let resultObject;
             let termValue = terms.length;
-            this.doc = [];
+            let document = [];
             //code to get all unique books start
-            this.allbooknames = [];
+            let allBookNames = [];
             for (let k = 0; k < termValue; k++) {
-                this.doc.push(await this.wordsIndexTable.findOne({_id: terms[k]}));
-                this.book = this.doc[k].bookname;
-                this.bookvalues = Object.getOwnPropertyNames(this.book);
+                document.push(await this.wordsIndexTable.findOne({_id: terms[k]}));
+                let book = document[k].bookname;
+                this.bookvalues = Object.getOwnPropertyNames(book);
                 for (let entry of this.bookvalues) {
-                    if (!this.allbooknames.includes(entry))
-                        this.allbooknames.push(entry);
+                    if (!allBookNames.includes(entry))
+                        allBookNames.push(entry);
                 }
             }
             //code to get all unique books end
 
-            let books = this.allbooknames.length;
+            let books = allBookNames.length;
             for (let i = 0; i < books; i++) {
-                // creating new object for every book name
                 resultObject = new Result();
-                resultObject.name = this.allbooknames[i];
+                resultObject.name = allBookNames[i];
                 let score = 0;
                 let lines = [];
-                //creating temporary map
                 let lineMap = new Map();
                 let bookArray = [];
                 for (let j = 0; j < termValue; j++) {
                     //get all books for particular word
-                    bookArray = this.doc[j].bookname;
+                    bookArray = document[j].bookname;
                     let bookName = Object.getOwnPropertyNames(bookArray);
-                    // let bookArray = this.finalMap.get(terms[j]);
-
-                    if (typeof(bookArray) !== "undefined" && bookName.includes(this.allbooknames[i])) {
-                        // get score from database table
+                    //updating score and lineIndex values for result object
+                    if (typeof(bookArray) !== "undefined" && bookName.includes(allBookNames[i])) {
                         for (let variable of bookName) {
-                            if (variable === this.allbooknames[i]) {
-                                score = score + bookArray[this.allbooknames[i]].score;
+                            if (variable === allBookNames[i]) {
+                                score = score + bookArray[allBookNames[i]].score;
                             }
                         }
-
-                        //get line from database table
-                        const lineIndex = bookArray[this.allbooknames[i]].lineIndex;
-                        const line = await this.lineIndexTable.findOne({_id: this.allbooknames[i]});
+                        const lineIndex = bookArray[allBookNames[i]].lineIndex;
+                        const line = await this.lineIndexTable.findOne({_id: allBookNames[i]});
                         const finalLine = line.contentText[lineIndex] + "\n";
-                        //const line = this.bookLineMap.get(allbookNames[i])[this.finalMap.get(terms[j]).get(allbookNames[i])[1]] + "\n";
 
                         //checking if line is already taken
                         if (!lines.includes(finalLine)) {
-                            // set line
                             lineMap.set(lineIndex, finalLine);
                         }
-
-
                     }
                 }
                 let lineNo = Array.from(lineMap.keys());
