@@ -43,12 +43,12 @@ class DocFinder {
      *  close any database connections.
      */
     async close() {
-        this.client.close();
+        await this.client.close();
     }
 
     /** Clear database */
     async clear() {
-        //TODO
+   //     let collectionArray = await this.db.listCollections().toArray();
     }
 
     /** Return an array of non-noise normalized words from string
@@ -73,7 +73,6 @@ class DocFinder {
             }
         }
         return localWords;
-
     }
 
     /** Add all normalized words in the noiseText string to this as
@@ -102,24 +101,6 @@ class DocFinder {
         await this.pushWords(this.wordIndexObject);
     }
 
-    /*    async getMapFromDatabase() {
-            //get the word index collections
-            let existingWordObject = {};
-            try {
-                //let cursor = this.wordsIndexTable.find(WORDS_INDEX_TABLE).toArray(function(err, documents){});
-                this.exisitingWordIndex  = await this.wordsIndexTable.findOne({'_id': NOISEWORDSID});
-                let objectKeys =  Object.keys(this.exisitingWordIndex);
-                let length = objectKeys.length;
-                for(let i = 1 ; i <=length ;i++){
-                    existingWordObject[objectKeys[i]] = this.exisitingWordIndex[objectKeys[i]];
-                }
-                //convert array into object
-            } catch (e) {
-                console.error(e);
-            }
-           return existingWordObject;
-        }*/
-
     async operations(lengthOfBook, wordsIndexForLine, name, object) {
         //get all noise words start
         this.allNoiseWords = await this.noiseWordsTable.find({}).toArray();
@@ -130,7 +111,6 @@ class DocFinder {
         //get all noise words ends
 
         //old code starts
-
         for (let j = 0; j < lengthOfBook; j++) {
             let wordsIndex = wordsIndexForLine[j].split(/\s+/);
             const length = wordsIndex.length;
@@ -233,16 +213,16 @@ class DocFinder {
 
             let resultObject;
             let termValue = terms.length;
-            this.doc =[];
+            this.doc = [];
             //code to get all unique books start
             this.allbooknames = [];
-            for(let k = 0 ; k < termValue ; k++ ){
-                this.doc.push(await this.wordsIndexTable.findOne({_id:terms[k]}));
-                this.book=this.doc[k].bookname;
-                this.bookvalues =Object.getOwnPropertyNames(this.book);
-                for(let entry of this.bookvalues) {
-                    if(!this.allbooknames.includes(entry))
-                    this.allbooknames.push(entry);
+            for (let k = 0; k < termValue; k++) {
+                this.doc.push(await this.wordsIndexTable.findOne({_id: terms[k]}));
+                this.book = this.doc[k].bookname;
+                this.bookvalues = Object.getOwnPropertyNames(this.book);
+                for (let entry of this.bookvalues) {
+                    if (!this.allbooknames.includes(entry))
+                        this.allbooknames.push(entry);
                 }
             }
             //code to get all unique books end
@@ -253,31 +233,34 @@ class DocFinder {
                 resultObject = new Result();
                 resultObject.name = this.allbooknames[i];
                 let score = 0;
-                let lineIndex = [];
+                let lines = [];
                 //creating temporary map
                 let lineMap = new Map();
                 let bookArray = [];
                 for (let j = 0; j < termValue; j++) {
                     //get all books for particular word
                     bookArray = this.doc[j].bookname;
-                    let bookName =Object.getOwnPropertyNames(bookArray);
-                   // let bookArray = this.finalMap.get(terms[j]);
+                    let bookName = Object.getOwnPropertyNames(bookArray);
+                    // let bookArray = this.finalMap.get(terms[j]);
 
-                   if (typeof(bookArray) !== "undefined" && bookName.includes(this.allbooknames[i])) {
+                    if (typeof(bookArray) !== "undefined" && bookName.includes(this.allbooknames[i])) {
                         // get score from database table
-                        for(let variable of bookName){
-                            if(variable === this.allbooknames[i]){
+                        for (let variable of bookName) {
+                            if (variable === this.allbooknames[i]) {
                                 score = score + bookArray[this.allbooknames[i]].score;
                             }
                         }
 
                         //get line from database table
-                        const line = this.bookLineMap.get(allbookNames[i])[this.finalMap.get(terms[j]).get(allbookNames[i])[1]] + "\n";
+                        const lineIndex = bookArray[this.allbooknames[i]].lineIndex;
+                        const line = await this.lineIndexTable.findOne({_id: this.allbooknames[i]});
+                        const finalLine = line.contentText[lineIndex] + "\n";
+                        //const line = this.bookLineMap.get(allbookNames[i])[this.finalMap.get(terms[j]).get(allbookNames[i])[1]] + "\n";
 
                         //checking if line is already taken
-                        if (!lineIndex.includes(line)) {
-                           // set line
-                            lineMap.set(this.finalMap.get(terms[j]).get(allbookNames[i])[1], line);
+                        if (!lines.includes(finalLine)) {
+                            // set line
+                            lineMap.set(lineIndex, finalLine);
                         }
 
 
@@ -290,37 +273,15 @@ class DocFinder {
                 //push all the lines in lineIndex
                 let arrayLength = lineNo.length;
                 for (let k = 0; k < arrayLength; k++) {
-                    lineIndex.push(lineMap.get(lineNo[k]));
+                    lines.push(lineMap.get(lineNo[k]));
                 }
                 resultObject.score = score;
-                resultObject.lines = lineIndex;
+                resultObject.lines = lines;
                 results.push(resultObject);
             }
         }
         results.sort(compareResults);
         return results;
-    }
-    book(terms, doc) {
-
-
-        /*
-        let len = terms.length;
-        let allBooks = [];
-        for (let i = 0; i < len; i++) {
-            const word = terms[i];
-            if (docValues.includes(word)) {
-                let allkeys = new Set( (doc.map(function (value) {
-                    let outerObj = value.bookname;
-                    return Object.getOwnPropertyNames(outerObj)[0];
-                })));
-                for(let key of allkeys){
-                    if(!allBooks.includes(key)){
-                        allBooks.push(key);
-                    }
-                }
-            }
-        }
-        return allBooks;*/
     }
 
     /** Given a text string, return a ordered list of all completions of
@@ -328,7 +289,6 @@ class DocFinder {
      *  in text is not alphabetic.
      */
     async complete(text) {
-
         if (!text.match(/[a-zA-Z]$/)) {
             return [];
         }
@@ -361,10 +321,14 @@ const WORD_REGEX = /\S+/g;
  */
 class Result {
     constructor(name, score, lines) {
-        this.name = name; this.score = score; this.lines = lines;
+        this.name = name;
+        this.score = score;
+        this.lines = lines;
     }
 
-    toString() { return `${this.name}: ${this.score}\n${this.lines}`; }
+    toString() {
+        return `${this.name}: ${this.score}\n${this.lines}`;
+    }
 }
 
 /** Compare result1 with result2: higher scores compare lower; if
