@@ -33,7 +33,6 @@ class DocFinder {
     async init() {
         this.client = await mongo.connect(this.url, MONGO_OPTIONS);
         this.db = this.client.db(this.dbName);
-        this.lineIndexTable = this.db.collection(LINE_INDEX_TABLE);
         this.wordsIndexTable = this.db.collection(WORDS_INDEX_TABLE);
         this.noiseWordsTable = this.db.collection(NOISE_WORDS_TABLE);
         this.contentsTable = this.db.collection(CONTENT_TABLE);
@@ -48,7 +47,10 @@ class DocFinder {
 
     /** Clear database */
     async clear() {
-   //     let collectionArray = await this.db.listCollections().toArray();
+      let collections = await this.db.collections();
+      for(let collection of collections){
+          await collection.drop();
+      }
     }
 
     /** Return an array of non-noise normalized words from string
@@ -96,7 +98,7 @@ class DocFinder {
         let wordsIndexForLine = contentText.split(/\n+/);
         const lengthOfBook = wordsIndexForLine.length;
         //updating line indexing in database
-        await this.pushLineIndex(name, wordsIndexForLine);
+    //    await this.pushLineIndex(name, wordsIndexForLine);
         await this.pushContents(name, contentText);
         this.wordIndexObject = await this.operations(lengthOfBook, wordsIndexForLine, name, this.wordIndexObject);
         await this.pushWords(this.wordIndexObject);
@@ -157,13 +159,13 @@ class DocFinder {
         }
     }
 
-    async pushLineIndex(name, wordsIndexForLine) {
+    /*async pushLineIndex(name, wordsIndexForLine) {
         try {
             await this.lineIndexTable.updateOne({'_id': name}, {$set: {'contentText': wordsIndexForLine}}, {upsert: true});
         } catch (e) {
             console.error(e);
         }
-    }
+    }*/
 
     async pushContents(name, wordsIndexForLine) {
         try {
@@ -249,8 +251,11 @@ class DocFinder {
                             }
                         }
                         const lineIndex = bookArray[allBookNames[i]].lineIndex;
-                        const line = await this.lineIndexTable.findOne({_id: allBookNames[i]});
-                        const finalLine = line.contentText[lineIndex] + "\n";
+                   //     const line = await this.lineIndexTable.findOne({_id: allBookNames[i]});
+                        const line = await this.contentsTable.findOne({_id: allBookNames[i]});
+                        let LineArray = line.contentText.split(/\n+/);
+                        const finalLine = LineArray[lineIndex] + "\n";
+                      //  const finalLine = line.contentText[lineIndex] + "\n";
 
                         //checking if line is already taken
                         if (!lines.includes(finalLine)) {
