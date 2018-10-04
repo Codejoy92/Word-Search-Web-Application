@@ -159,14 +159,6 @@ class DocFinder {
         }
     }
 
-    /*async pushLineIndex(name, wordsIndexForLine) {
-        try {
-            await this.lineIndexTable.updateOne({'_id': name}, {$set: {'contentText': wordsIndexForLine}}, {upsert: true});
-        } catch (e) {
-            console.error(e);
-        }
-    }*/
-
     async pushContents(name, wordsIndexForLine) {
         try {
             await this.contentsTable.updateOne({'_id': name}, {$set: {'contentText': wordsIndexForLine}}, {upsert: true});
@@ -221,12 +213,15 @@ class DocFinder {
             //code to get all unique books start
             let allBookNames = [];
             for (let k = 0; k < termValue; k++) {
-                document.push(await this.wordsIndexTable.findOne({_id: terms[k]}));
-                let book = document[k].bookname;
-                this.bookvalues = Object.getOwnPropertyNames(book);
-                for (let entry of this.bookvalues) {
-                    if (!allBookNames.includes(entry))
-                        allBookNames.push(entry);
+                let value = await this.wordsIndexTable.findOne({_id: terms[k]});
+                if(value) {
+                    document.push(value);
+                    let book = document[k].bookname;
+                    this.bookvalues = Object.getOwnPropertyNames(book);
+                    for (let entry of this.bookvalues) {
+                        if (!allBookNames.includes(entry))
+                            allBookNames.push(entry);
+                    }
                 }
             }
             //code to get all unique books end
