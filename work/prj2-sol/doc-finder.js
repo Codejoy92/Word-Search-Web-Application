@@ -42,15 +42,16 @@ class DocFinder {
      *  close any database connections.
      */
     async close() {
-        await this.client.close(true, function(){});
+        await this.client.close(true, function () {
+        });
     }
 
     /** Clear database */
     async clear() {
-      let collections = await this.db.collections();
-      for(let collection of collections){
-          await collection.drop();
-      }
+        let collections = await this.db.collections();
+        for (let collection of collections) {
+            await collection.drop();
+        }
     }
 
     /** Return an array of non-noise normalized words from string
@@ -83,8 +84,7 @@ class DocFinder {
     async addNoiseWords(noiseText) {
         this.noiseWordsIndex = new Set(noiseText.split(/\s+/));
         const noiseArray = Array.from(this.noiseWordsIndex);
-        const noiseDocs = noiseArray.map(n => ({_id: n}));
-        await this.noiseWordsTable.insertMany(noiseDocs);
+        await this.noiseWordsTable.updateOne({'_id': 'n'}, {$set: {'noiseWords': noiseArray}}, {upsert: true});
     }
 
     /** Add document named by string name with specified content string
@@ -93,25 +93,26 @@ class DocFinder {
      *  This operation should be idempotent.
      */
     async addContent(name, contentText) {
-      //  console.log('Reading.. '+name);
+        //  console.log('Reading.. '+name);
         if (!contentText.endsWith('\n')) contentText = contentText + '\n';
         let wordsIndexForLine = contentText.split(/\n+/);
         const lengthOfBook = wordsIndexForLine.length;
         //updating line indexing in database
-    //    await this.pushLineIndex(name, wordsIndexForLine);
+        //    await this.pushLineIndex(name, wordsIndexForLine);
         await this.pushContents(name, contentText);
         this.wordIndexObject = await this.operations(lengthOfBook, wordsIndexForLine, name, this.wordIndexObject);
         await this.pushWords(this.wordIndexObject);
-      //  console.log('completed Reading.. '+name);
+        //  console.log('completed Reading.. '+name);
     }
 
     async operations(lengthOfBook, wordsIndexForLine, name, object) {
         //get all noise words start
         this.allNoiseWords = await this.noiseWordsTable.find({}).toArray();
-        this.finalArray = this.allNoiseWords.map(function (obj) {
-            return obj._id;
+        this.finalArray1 = this.allNoiseWords.map(function (obj) {
+            return obj.noiseWords;
         });
-        this.noiseWordsIndex = new Set(this.finalArray);
+        let finalArray = this.finalArray1[0];
+        this.noiseWordsIndex = new Set(finalArray);
         //get all noise words ends
 
         //old code starts
@@ -214,7 +215,7 @@ class DocFinder {
             let allBookNames = [];
             for (let k = 0; k < termValue; k++) {
                 let value = await this.wordsIndexTable.findOne({_id: terms[k]});
-                if(value) {
+                if (value) {
                     document.push(value);
                     let book = document[k].bookname;
                     this.bookvalues = Object.getOwnPropertyNames(book);
@@ -236,25 +237,27 @@ class DocFinder {
                 let bookArray = [];
                 for (let j = 0; j < termValue; j++) {
                     //get all books for particular word
-                    bookArray = document[j].bookname;
-                    let bookName = Object.getOwnPropertyNames(bookArray);
-                    //updating score and lineIndex values for result object
-                    if (typeof(bookArray) !== "undefined" && bookName.includes(allBookNames[i])) {
-                        for (let variable of bookName) {
-                            if (variable === allBookNames[i]) {
-                                score = score + bookArray[allBookNames[i]].score;
+                    if (document[j]) {
+                        bookArray = document[j].bookname;
+                        let bookName = Object.getOwnPropertyNames(bookArray);
+                        //updating score and lineIndex values for result object
+                        if (typeof(bookArray) !== "undefined" && bookName.includes(allBookNames[i])) {
+                            for (let variable of bookName) {
+                                if (variable === allBookNames[i]) {
+                                    score = score + bookArray[allBookNames[i]].score;
+                                }
                             }
-                        }
-                        const lineIndex = bookArray[allBookNames[i]].lineIndex;
-                   //     const line = await this.lineIndexTable.findOne({_id: allBookNames[i]});
-                        const line = await this.contentsTable.findOne({_id: allBookNames[i]});
-                        let LineArray = line.contentText.split(/\n+/);
-                        const finalLine = LineArray[lineIndex] + "\n";
-                      //  const finalLine = line.contentText[lineIndex] + "\n";
+                            const lineIndex = bookArray[allBookNames[i]].lineIndex;
+                            //     const line = await this.lineIndexTable.findOne({_id: allBookNames[i]});
+                            const line = await this.contentsTable.findOne({_id: allBookNames[i]});
+                            let LineArray = line.contentText.split(/\n+/);
+                            const finalLine = LineArray[lineIndex] + "\n";
+                            //  const finalLine = line.contentText[lineIndex] + "\n";
 
-                        //checking if line is already taken
-                        if (!lines.includes(finalLine)) {
-                            lineMap.set(lineIndex, finalLine);
+                            //checking if line is already taken
+                            if (!lines.includes(finalLine)) {
+                                lineMap.set(lineIndex, finalLine);
+                            }
                         }
                     }
                 }
