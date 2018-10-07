@@ -93,16 +93,13 @@ class DocFinder {
      *  This operation should be idempotent.
      */
     async addContent(name, contentText) {
-        //  console.log('Reading.. '+name);
         if (!contentText.endsWith('\n')) contentText = contentText + '\n';
         let wordsIndexForLine = contentText.split(/\n+/);
         const lengthOfBook = wordsIndexForLine.length;
         //updating line indexing in database
-        //    await this.pushLineIndex(name, wordsIndexForLine);
         await this.pushContents(name, contentText);
         this.wordIndexObject = await this.operations(lengthOfBook, wordsIndexForLine, name, this.wordIndexObject);
         await this.pushWords(this.wordIndexObject);
-        //  console.log('completed Reading.. '+name);
     }
 
     async operations(lengthOfBook, wordsIndexForLine, name, object) {
@@ -213,16 +210,20 @@ class DocFinder {
             let document = [];
             //code to get all unique books start
             let allBookNames = [];
+            let flag =0;
             for (let k = 0; k < termValue; k++) {
                 let value = await this.wordsIndexTable.findOne({_id: terms[k]});
                 if (value) {
                     document.push(value);
+
                     let book = document[k].bookname;
                     this.bookvalues = Object.getOwnPropertyNames(book);
                     for (let entry of this.bookvalues) {
                         if (!allBookNames.includes(entry))
                             allBookNames.push(entry);
                     }
+                }else{
+                    document.push(null);
                 }
             }
             //code to get all unique books end
@@ -349,7 +350,6 @@ function stem(word) {
     return word.replace(/\'s$/, '');
 }
 
-const LINE_INDEX_TABLE = 'line_index_table';
 const CONTENT_TABLE = 'content_table';
 const WORDS_INDEX_TABLE = 'words_index_table';
 const NOISE_WORDS_TABLE = 'noise_words_table';
