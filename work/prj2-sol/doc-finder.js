@@ -293,7 +293,7 @@ class DocFinder {
         let docValues = doc.map(function (value) {
             return value._id;
         });
-        return docValues.filter((w) => w.startsWith(word));
+        return docValues.filter((w) => w.startsWith(word)).sort();
     }
 
 
