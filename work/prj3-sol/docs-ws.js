@@ -43,9 +43,10 @@ function setupRoutes(app) {
   app.use(bodyParser.json()); //all incoming bodies are JSON
 
   //@TODO: add routes for required 4 services
- // app.get(DOCS, doList(app));
+
   app.get(`${DOCS}/:id`, doGetContent(app));
   app.get(`${COMPLETIONS}?:text`, doGetComplete(app));
+  app.get(`${DOCS}?:q`, doGetSearch(app));
   app.use(doErrors()); //must be last; setup for server errors
 }
 
@@ -65,19 +66,7 @@ function doErrors(app) {
   };
 }
 
-/*function doList(app) {
-    return errorWrap(async function(req, res) {
-        const q = req.query || {};
-        try {
-            const results = await app.locals.model.read(q);
-            res.json(results);
-        }
-        catch (err) {
-            const mapped = mapError(err);
-            res.status(mapped.status).json(mapped);
-        }
-    });
-}*/
+
 function doGetContent(app) {
     return errorWrap(async function (req, res) {
         try {
@@ -117,8 +106,8 @@ function doGetComplete(app) {
 
             const text = req.query;
             const results = await app.locals.finder.complete(text.text);
-            console.log(text.text);
-            console.log(results);
+
+
             if (results.length === 0) {
                 throw {
                     isDomain: true,
@@ -128,6 +117,102 @@ function doGetComplete(app) {
             }
             else {
                 res.json(results);
+            }
+        }
+        catch(err) {
+            const mapped = mapError(err);
+            res.status(mapped.status).json(mapped);
+        }
+    });
+}
+
+
+function doGetSearch(app) {
+    return errorWrap(async function(req, res) {
+        try {
+            const text = req.query;
+            const results = await app.locals.finder.find(text.q);
+            let outputValue;
+            let end;
+            let start=0;
+            let countV=0;
+            let totalCount = results.length;
+           // console.log("starting is :" + text.start);
+            if(text.count === undefined){
+                end = parseInt(text.start) + COUNT;
+                countV = COUNT;
+           //     console.log("ending up :" + end);
+            }else{
+                end = parseInt(text.start) + parseInt(text.count);
+                countV = text.count;
+             //   console.log("ending down :" + end);
+            }
+            if(text.start === undefined){
+                start = 0;
+            }else{
+                start = parseInt(text.start);
+            }
+
+            let links = [{
+                "rel": "self",
+                "href": baseUrl(req, DOCS) + '?q=' + text.q.replace(' ', '%20') + "&start=" + start + "&count=" + countV
+            }];
+            //for previous link
+                if(parseInt(text.start)>0) {
+                    let startIndex = 0;
+                    let countValue = 0;
+
+                        if(text.count !== undefined) {
+                            parseInt(text.start) - parseInt(text.count) <= 0 ?
+                                startIndex = 0 :
+                                startIndex = parseInt(text.start) - parseInt(text.count);
+                            countValue = parseInt(text.count);
+                        }else{ parseInt(text.start) - parseInt(COUNT) <= 0 ?
+                            startIndex = 0 :
+                            startIndex = parseInt(text.start) - parseInt(COUNT);
+                            countValue = COUNT;
+                        }
+
+                    let linkValue = {
+                        "rel": "previous",
+                        "href": baseUrl(req, DOCS) + '?q=' + text.q.replace(' ', '%20') + "&start=" + startIndex + "&count=" + countValue
+                     };
+
+                    links.push(linkValue);
+               ///     console.log(links);
+                }
+
+            //for next link
+            if(end + 1 < totalCount ) {
+                let countValue = 0;
+                let startIndex = end + 1 ;
+                if(text.count !== undefined) {
+                    countValue = parseInt(text.count);
+                }else{
+                    countValue = COUNT;
+                }
+
+                let linkValue = {
+                    "rel": "next",
+                    "href": baseUrl(req, DOCS) + '?q=' + text.q.replace(' ', '%20') + "&start=" + startIndex + "&count=" + countValue
+                };
+
+                links.push(linkValue);
+            //    console.log(links);
+            }
+            outputValue = {"results": [results.slice(parseInt(text.start), parseInt(end))],
+                           "totalCount": totalCount,
+                           "links":[links] };
+
+            if (results.length === 0) {
+                throw {
+                    isDomain: true,
+                    errorCode: 'NOT_FOUND',
+                    message: `user ${id} not found`,
+                };
+            }
+            else {
+                res.json(outputValue);
             }
         }
         catch(err) {
@@ -159,6 +244,7 @@ function baseUrl(req, path='/') {
   const url = `${req.protocol}://${req.hostname}:${port}${path}`;
   return url;
 }
+
 /*************************** Mapping Errors ****************************/
 
 const ERROR_MAP = {
