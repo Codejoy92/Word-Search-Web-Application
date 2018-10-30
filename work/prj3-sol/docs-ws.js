@@ -43,7 +43,8 @@ function setupRoutes(app) {
   app.use(bodyParser.json()); //all incoming bodies are JSON
 
   //@TODO: add routes for required 4 services
-
+ // app.get(DOCS, doList(app));
+  app.get(`${DOCS}/:id`, doGet(app));
   app.use(doErrors()); //must be last; setup for server errors   
 }
 
@@ -61,6 +62,52 @@ function doErrors(app) {
     res.json({ code: 'SERVER_ERROR', message: err.message });
     console.error(err);
   };
+}
+
+/*function doList(app) {
+    return errorWrap(async function(req, res) {
+        const q = req.query || {};
+        try {
+            const results = await app.locals.model.read(q);
+            res.json(results);
+        }
+        catch (err) {
+            const mapped = mapError(err);
+            res.status(mapped.status).json(mapped);
+        }
+    });
+}*/
+function doGet(app) {
+    return errorWrap(async function(req, res) {
+        try {
+            console.log("inside doGet");
+            const id = req.params.id;
+            const results = await app.locals.finder.docContent(id);
+
+            let printValue = {
+                            "content" : results,
+                            "link" : [{
+                                "rel" : "self",
+                                "href" :baseUrl(req, DOCS)
+                            }]
+            };
+            console.log(results);
+            if (results.length === 0) {
+                throw {
+                    isDomain: true,
+                    errorCode: 'NOT_FOUND',
+                    message: `user ${id} not found`,
+                };
+            }
+            else {
+                res.json(printValue);
+            }
+        }
+        catch(err) {
+            const mapped = mapError(err);
+            res.status(mapped.status).json(mapped);
+        }
+    });
 }
 
 /** Set up error handling for handler by wrapping it in a 
@@ -85,4 +132,27 @@ function baseUrl(req, path='/') {
   const port = req.app.locals.port;
   const url = `${req.protocol}://${req.hostname}:${port}${path}`;
   return url;
+}
+/*************************** Mapping Errors ****************************/
+
+const ERROR_MAP = {
+    EXISTS: CONFLICT,
+    NOT_FOUND: NOT_FOUND
+};
+
+/** Map domain/internal errors into suitable HTTP errors.  Return'd
+ *  object will have a "status" property corresponding to HTTP status
+ *  code.
+ */
+function mapError(err) {
+    console.error(err);
+    return err.isDomain
+        ? { status: (ERROR_MAP[err.errorCode] || BAD_REQUEST),
+            code: err.errorCode,
+            message: err.message
+        }
+        : { status: SERVER_ERROR,
+            code: 'INTERNAL',
+            message: err.toString()
+        };
 }
