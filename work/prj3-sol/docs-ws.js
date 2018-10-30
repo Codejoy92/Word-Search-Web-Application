@@ -44,8 +44,9 @@ function setupRoutes(app) {
 
   //@TODO: add routes for required 4 services
  // app.get(DOCS, doList(app));
-  app.get(`${DOCS}/:id`, doGet(app));
-  app.use(doErrors()); //must be last; setup for server errors   
+  app.get(`${DOCS}/:id`, doGetContent(app));
+  app.get(`${COMPLETIONS}?:text`, doGetComplete(app));
+  app.use(doErrors()); //must be last; setup for server errors
 }
 
 //@TODO: add handler creation functions called by route setup
@@ -55,7 +56,7 @@ function setupRoutes(app) {
 
 /** Return error handler which ensures a server error results in nice
  *  JSON sent back to client with details logged on console.
- */ 
+ */
 function doErrors(app) {
   return async function(err, req, res, next) {
     res.status(SERVER_ERROR);
@@ -77,19 +78,19 @@ function doErrors(app) {
         }
     });
 }*/
-function doGet(app) {
-    return errorWrap(async function(req, res) {
+function doGetContent(app) {
+    return errorWrap(async function (req, res) {
         try {
             console.log("inside doGet");
             const id = req.params.id;
             const results = await app.locals.finder.docContent(id);
 
             let printValue = {
-                            "content" : results,
-                            "link" : [{
-                                "rel" : "self",
-                                "href" :baseUrl(req, DOCS)
-                            }]
+                "content": results,
+                "link": [{
+                    "rel": "self",
+                    "href": baseUrl(req, DOCS)
+                }]
             };
             console.log(results);
             if (results.length === 0) {
@@ -103,14 +104,39 @@ function doGet(app) {
                 res.json(printValue);
             }
         }
-        catch(err) {
+        catch (err) {
             const mapped = mapError(err);
             res.status(mapped.status).json(mapped);
         }
     });
 }
 
-/** Set up error handling for handler by wrapping it in a 
+function doGetComplete(app) {
+    return errorWrap(async function(req, res) {
+        try {
+
+            const text = req.query;
+            const results = await app.locals.finder.complete(text.text);
+            console.log(text.text);
+            console.log(results);
+            if (results.length === 0) {
+                throw {
+                    isDomain: true,
+                    errorCode: 'NOT_FOUND',
+                    message: `user ${id} not found`,
+                };
+            }
+            else {
+                res.json(results);
+            }
+        }
+        catch(err) {
+            const mapped = mapError(err);
+            res.status(mapped.status).json(mapped);
+        }
+    });
+}
+/** Set up error handling for handler by wrapping it in a
  *  try-catch with chaining to error handler on error.
  */
 function errorWrap(handler) {
@@ -123,7 +149,7 @@ function errorWrap(handler) {
     }
   };
 }
-  
+
 
 /** Return base URL of req for path.
  *  Useful for building links; Example call: baseUrl(req, DOCS)
