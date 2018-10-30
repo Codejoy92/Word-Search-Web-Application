@@ -47,6 +47,7 @@ function setupRoutes(app) {
   app.get(`${DOCS}/:id`, doGetContent(app));
   app.get(`${COMPLETIONS}?:text`, doGetComplete(app));
   app.get(`${DOCS}?:q`, doGetSearch(app));
+  app.post(DOCS, doCreate(app));
   app.use(doErrors()); //must be last; setup for server errors
 }
 
@@ -207,7 +208,7 @@ function doGetSearch(app) {
                 throw {
                     isDomain: true,
                     errorCode: 'NOT_FOUND',
-                    message: `user ${id} not found`,
+                    message: `user ${text.q} not found`,
                 };
             }
             else {
@@ -234,7 +235,22 @@ function errorWrap(handler) {
   };
 }
 
-
+function doCreate(app) {
+    return errorWrap(async function(req, res) {
+        try {
+            const obj = req.body;
+            let name= obj.name;
+            let content= obj.content;
+            await app.locals.finder.addContent(name,content);
+            res.append('Location', baseUrl(req) + '/' + obj.id);
+            res.sendStatus(CREATED);
+        }
+        catch(err) {
+            const mapped = mapError(err);
+            res.status(mapped.status).json(mapped);
+        }
+    });
+}
 /** Return base URL of req for path.
  *  Useful for building links; Example call: baseUrl(req, DOCS)
  */
