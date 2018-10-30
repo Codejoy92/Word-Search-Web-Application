@@ -184,7 +184,7 @@ function doGetSearch(app) {
             //for next link
             if(end + 1 < totalCount ) {
                 let countValue = 0;
-                let startIndex = end + 1 ;
+                let startIndex = end ;
                 if(text.count !== undefined) {
                     countValue = parseInt(text.count);
                 }else{
