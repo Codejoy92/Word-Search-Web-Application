@@ -138,19 +138,18 @@ function doGetSearch(app) {
             let countV=0;
             let totalCount = results.length;
            // console.log("starting is :" + text.start);
-            if(text.count === undefined){
-                end = parseInt(text.start) + COUNT;
-                countV = COUNT;
-           //     console.log("ending up :" + end);
-            }else{
-                end = parseInt(text.start) + parseInt(text.count);
-                countV = text.count;
-             //   console.log("ending down :" + end);
-            }
             if(text.start === undefined){
                 start = 0;
             }else{
                 start = parseInt(text.start);
+            }
+
+            if(text.count === undefined){
+                    end = start + COUNT;
+                    countV = COUNT;
+            }else{
+                end = start + parseInt(text.count);
+                countV = text.count;
             }
 
             let links = [{
@@ -200,7 +199,7 @@ function doGetSearch(app) {
                 links.push(linkValue);
             //    console.log(links);
             }
-            outputValue = {"results": [results.slice(parseInt(text.start), parseInt(end))],
+            outputValue = {"results": [results.slice(start, end)],
                            "totalCount": totalCount,
                            "links":[links] };
 
