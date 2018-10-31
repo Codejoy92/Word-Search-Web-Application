@@ -79,7 +79,7 @@ function doGetContent(app) {
                 "content": results,
                 "link": [{
                     "rel": "self",
-                    "href": baseUrl(req, DOCS)
+                    "href": baseUrl(req, DOCS)+"/"+id
                 }]
             };
             console.log(results);
@@ -243,7 +243,8 @@ function doCreate(app) {
             let content= obj.content;
             await app.locals.finder.addContent(name,content);
             res.append('Location', baseUrl(req) + '/' + obj.id);
-            res.sendStatus(CREATED);
+            res.status(CREATED);
+            res.send({"href":baseUrl(req,DOCS)+"/"+obj.name});
         }
         catch(err) {
             const mapped = mapError(err);
