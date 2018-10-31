@@ -104,25 +104,23 @@ function doGetContent(app) {
 function doGetComplete(app) {
     return errorWrap(async function(req, res) {
         try {
-
             const text = req.query;
-            const results = await app.locals.finder.complete(text.text);
-
-
-            if (results.length === 0) {
-                throw {
+            if(text.text === undefined){
+                throw{
                     isDomain: true,
-                    errorCode: 'NOT_FOUND',
-                    message: `user ${id} not found`,
+                    code: "BAD_PARAM",
+                    errorCode: 'BAD_REQUEST',
+                    message: "required query parameter \"text\" is missing"
                 };
-            }
-            else {
+            }else {
+                const results = await app.locals.finder.complete(text.text);
                 res.json(results);
             }
         }
         catch(err) {
             const mapped = mapError(err);
-            res.status(mapped.status).json(mapped);
+            res.status(mapped.status).json({"code":mapped.code,
+                "message":mapped.message});
         }
     });
 }
@@ -276,7 +274,7 @@ function mapError(err) {
     console.error(err);
     return err.isDomain
         ? { status: (ERROR_MAP[err.errorCode] || BAD_REQUEST),
-            code: err.errorCode,
+            code: err.code,
             message: err.message
         }
         : { status: SERVER_ERROR,
