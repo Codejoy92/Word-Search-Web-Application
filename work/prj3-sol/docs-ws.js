@@ -71,7 +71,6 @@ function doErrors(app) {
 function doGetContent(app) {
     return errorWrap(async function (req, res) {
         try {
-            console.log("inside doGet");
             const id = req.params.id;
             const results = await app.locals.finder.docContent(id);
 
@@ -130,92 +129,105 @@ function doGetSearch(app) {
     return errorWrap(async function(req, res) {
         try {
             const text = req.query;
-            const results = await app.locals.finder.find(text.q);
-            let outputValue;
-            let end;
-            let start=0;
-            let countV=0;
-            let totalCount = results.length;
-           // console.log("starting is :" + text.start);
-            if(text.start === undefined){
-                start = 0;
-            }else{
-                start = parseInt(text.start);
-            }
+           if(text.q !== undefined) {
+               const results = await app.locals.finder.find(text.q);
+               let outputValue;
+               let end;
+               let start = 0;
+               let countV = 0;
+               let totalCount = results.length;
 
-            if(text.count === undefined){
-                    end = start + COUNT;
-                    countV = COUNT;
-            }else{
-                end = start + parseInt(text.count);
-                countV = text.count;
-            }
+               if (text.start === undefined) {
+                   start = 0;
+               } else {
+                   start = parseInt(text.start);
+               }
 
-            let links = [{
-                "rel": "self",
-                "href": baseUrl(req, DOCS) + '?q=' + text.q.replace(' ', '%20') + "&start=" + start + "&count=" + countV
-            }];
-            //for previous link
-                if(parseInt(text.start)>0) {
-                    let startIndex = 0;
-                    let countValue = 0;
+               if (text.count === undefined) {
+                   end = start + COUNT;
+                   countV = COUNT;
+               } else {
+                   end = start + parseInt(text.count);
+                   countV = text.count;
+               }
 
-                        if(text.count !== undefined) {
-                            parseInt(text.start) - parseInt(text.count) <= 0 ?
-                                startIndex = 0 :
-                                startIndex = parseInt(text.start) - parseInt(text.count);
-                            countValue = parseInt(text.count);
-                        }else{ parseInt(text.start) - parseInt(COUNT) <= 0 ?
-                            startIndex = 0 :
-                            startIndex = parseInt(text.start) - parseInt(COUNT);
-                            countValue = COUNT;
-                        }
+               let links = [{
+                   "rel": "self",
+                   "href": baseUrl(req, DOCS) + '?q=' + text.q.replace(' ', '%20') + "&start=" + start + "&count=" + countV
+               }];
+               //for previous link
+               if (parseInt(text.start) > 0) {
+                   let startIndex = 0;
+                   let countValue = 0;
 
-                    let linkValue = {
-                        "rel": "previous",
-                        "href": baseUrl(req, DOCS) + '?q=' + text.q.replace(' ', '%20') + "&start=" + startIndex + "&count=" + countValue
-                     };
+                   if (text.count !== undefined) {
+                       parseInt(text.start) - parseInt(text.count) <= 0 ?
+                           startIndex = 0 :
+                           startIndex = parseInt(text.start) - parseInt(text.count);
+                       countValue = parseInt(text.count);
+                   } else {
+                       parseInt(text.start) - parseInt(COUNT) <= 0 ?
+                           startIndex = 0 :
+                           startIndex = parseInt(text.start) - parseInt(COUNT);
+                       countValue = COUNT;
+                   }
 
-                    links.push(linkValue);
-               ///     console.log(links);
-                }
+                   let linkValue = {
+                       "rel": "previous",
+                       "href": baseUrl(req, DOCS) + '?q=' + text.q.replace(' ', '%20') + "&start=" + startIndex + "&count=" + countValue
+                   };
 
-            //for next link
-            if(end + 1 < totalCount ) {
-                let countValue = 0;
-                let startIndex = end ;
-                if(text.count !== undefined) {
-                    countValue = parseInt(text.count);
-                }else{
-                    countValue = COUNT;
-                }
+                   links.push(linkValue);
+                   ///     console.log(links);
+               }
 
-                let linkValue = {
-                    "rel": "next",
-                    "href": baseUrl(req, DOCS) + '?q=' + text.q.replace(' ', '%20') + "&start=" + startIndex + "&count=" + countValue
-                };
+               //for next link
+               if (end + 1 < totalCount) {
+                   let countValue = 0;
+                   let startIndex = end;
+                   if (text.count !== undefined) {
+                       countValue = parseInt(text.count);
+                   } else {
+                       countValue = COUNT;
+                   }
 
-                links.push(linkValue);
-            //    console.log(links);
-            }
-            outputValue = {"results": [results.slice(start, end)],
-                           "totalCount": totalCount,
-                           "links":[links] };
+                   let linkValue = {
+                       "rel": "next",
+                       "href": baseUrl(req, DOCS) + '?q=' + text.q.replace(' ', '%20') + "&start=" + startIndex + "&count=" + countValue
+                   };
 
-            if (results.length === 0) {
-                throw {
-                    isDomain: true,
-                    errorCode: 'NOT_FOUND',
-                    message: `user ${text.q} not found`,
-                };
-            }
-            else {
-                res.json(outputValue);
-            }
+                   links.push(linkValue);
+                   //    console.log(links);
+               }
+               outputValue = {
+                   "results": [results.slice(start, end)],
+                   "totalCount": totalCount,
+                   "links": [links]
+               };
+
+               if (results.length === 0) {
+                   throw {
+                       isDomain: true,
+                       errorCode: 'NOT_FOUND',
+                       message: `user ${text.q} not found`,
+                   };
+               }
+               else {
+                   res.json(outputValue);
+               }
+           }else{
+               throw{
+                   isDomain: true,
+                   code: "BAD_PARAM",
+                   errorCode: 'BAD_REQUEST',
+                   message: "required query parameter \"q\" is missing"
+               };
+           }
         }
         catch(err) {
             const mapped = mapError(err);
-            res.status(mapped.status).json(mapped);
+            res.status(mapped.status).json({"code":mapped.code,
+                "message":mapped.message});
         }
     });
 }
