@@ -129,18 +129,29 @@ function doGetSearch(app) {
     return errorWrap(async function(req, res) {
         try {
             const text = req.query;
+            const results = await app.locals.finder.find(text.q);
+            let totalCount = results.length;
            if(text.q !== undefined) {
-               const results = await app.locals.finder.find(text.q);
+
                let outputValue;
                let end;
                let start = 0;
                let countV = 0;
-               let totalCount = results.length;
+
 
                if (text.start === undefined) {
                    start = 0;
                } else {
                    start = parseInt(text.start);
+                   if(!Number.isInteger(start) || start>totalCount || start<0){
+                       throw{
+                           isDomain: true,
+                           code: "BAD_PARAM",
+                           errorCode: 'BAD_REQUEST',
+                           message: "bad query parameter \"start\""
+                       };
+                   }
+
                }
 
                if (text.count === undefined) {
@@ -149,6 +160,14 @@ function doGetSearch(app) {
                } else {
                    end = start + parseInt(text.count);
                    countV = text.count;
+                   if(!Number.isInteger(countV) || countV < 0){
+                       throw{
+                           isDomain: true,
+                           code: "BAD_PARAM",
+                           errorCode: 'BAD_REQUEST',
+                           message: "bad query parameter \"count\""
+                       };
+                   }
                }
 
                let links = [{
@@ -251,6 +270,22 @@ function doCreate(app) {
             const obj = req.body;
             let name= obj.name;
             let content= obj.content;
+            if(name === undefined){
+                throw{
+                    isDomain: true,
+                    code: "BAD_PARAM",
+                    errorCode: 'BAD_REQUEST',
+                    message: "required query parameter \"name\" is missing"
+                };
+            }
+            if(content === undefined){
+                throw{
+                    isDomain: true,
+                    code: "BAD_PARAM",
+                    errorCode: 'BAD_REQUEST',
+                    message: "required query parameter \"content\" is missing"
+                };
+            }
             await app.locals.finder.addContent(name,content);
             res.append('Location', baseUrl(req) + '/' + obj.id);
             res.status(CREATED);
