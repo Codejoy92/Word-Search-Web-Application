@@ -81,7 +81,6 @@ function doGetContent(app) {
                     "href": baseUrl(req, DOCS)+"/"+id
                 }]
             };
-            console.log(results);
             if (results.length === 0) {
                 throw {
                     isDomain: true,
@@ -135,7 +134,7 @@ function doGetSearch(app) {
 
                let outputValue;
                let end;
-               let start = 0;
+               let start;
                let countV = 0;
 
 
@@ -143,7 +142,8 @@ function doGetSearch(app) {
                    start = 0;
                } else {
                    start = parseInt(text.start);
-                   if(!Number.isInteger(start) || start>totalCount || start<0){
+
+                   if(isNaN(Number(start)) || start>totalCount || start<0){
                        throw{
                            isDomain: true,
                            code: "BAD_PARAM",
@@ -160,7 +160,7 @@ function doGetSearch(app) {
                } else {
                    end = start + parseInt(text.count);
                    countV = text.count;
-                   if(!Number.isInteger(countV) || countV < 0){
+                   if(isNaN(Number(countV)) || countV < 0){
                        throw{
                            isDomain: true,
                            code: "BAD_PARAM",
@@ -197,7 +197,6 @@ function doGetSearch(app) {
                    };
 
                    links.push(linkValue);
-                   ///     console.log(links);
                }
 
                //for next link
@@ -216,10 +215,9 @@ function doGetSearch(app) {
                    };
 
                    links.push(linkValue);
-                   //    console.log(links);
                }
                outputValue = {
-                   "results": [results.slice(start, end)],
+                   "results": results.slice(start, end),
                    "totalCount": totalCount,
                    "links": [links]
                };
@@ -318,7 +316,6 @@ const ERROR_MAP = {
  *  code.
  */
 function mapError(err) {
-    console.error(err);
     return err.isDomain
         ? { status: (ERROR_MAP[err.errorCode] || BAD_REQUEST),
             code: err.code,
