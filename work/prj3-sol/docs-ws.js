@@ -47,7 +47,7 @@ function setupRoutes(app) {
   app.get(`${DOCS}/:id`, doGetContent(app));
   app.get(`${COMPLETIONS}?:text`, doGetComplete(app));
   app.get(`${DOCS}?:q`, doGetSearch(app));
-  app.post(DOCS, doCreate(app));
+  app.post(`${DOCS}', doCreate(app));
   app.use(doErrors()); //must be last; setup for server errors
 }
 
