@@ -82,6 +82,13 @@ function doGetContent(app) {
                     "href": baseUrl(req, DOCS)+"/"+id
                 }]
             };
+
+            if(results.length === 0){
+                throw{
+                    code: 'NOT_FOUND',
+                    
+                }
+            }
                 res.json(printValue);
         }
         catch (err) {
@@ -301,7 +308,7 @@ const ERROR_MAP = {
  *  code.
  */
 function mapError(err) {
-    if(err.errorCode === "NOT_FOUND"){
+    if(err.code === "NOT_FOUND"){
         return {
             code: err.code,
             message: err.message
