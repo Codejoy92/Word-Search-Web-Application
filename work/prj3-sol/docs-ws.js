@@ -82,7 +82,14 @@ function doGetContent(app) {
                     "href": baseUrl(req, DOCS)+"/"+id
                 }]
             };
+            if (results.length === 0) {
+                throw {
+                    isDomain: true
+                };
+            }
+            else {
                 res.json(printValue);
+            }
         }
         catch (err) {
             const mapped = mapError(err);
