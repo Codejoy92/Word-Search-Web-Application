@@ -283,7 +283,8 @@ function doCreate(app) {
         }
         catch(err) {
             const mapped = mapError(err);
-            res.status(mapped.status).json(mapped);
+            res.status(mapped.status).json({"code":mapped.code,
+                "message":mapped.message});
         }
     });
 }
