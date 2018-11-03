@@ -144,7 +144,7 @@ function doGetSearch(app) {
                } else {
                    start = parseInt(text.start);
 
-                   if(isNaN(Number(start)) || start>totalCount || start<0){
+                   if(isNaN(Number(start)) || start>totalCount-1 || start<0){
                        throw{
                            isDomain: true,
                            code: "BAD_PARAM",
@@ -227,7 +227,7 @@ function doGetSearch(app) {
                    throw {
                        isDomain: true,
                        errorCode: 'NOT_FOUND',
-                       message: `user ${text.q} not found`,
+                       message: `${text.q} not found`,
                    };
                }
                else {
