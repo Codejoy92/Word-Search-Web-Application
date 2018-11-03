@@ -82,14 +82,7 @@ function doGetContent(app) {
                     "href": baseUrl(req, DOCS)+"/"+id
                 }]
             };
-            if (results.length === 0) {
-                throw {
-                    isDomain: true
-                };
-            }
-            else {
                 res.json(printValue);
-            }
         }
         catch (err) {
             const mapped = mapError(err);
@@ -308,6 +301,13 @@ const ERROR_MAP = {
  *  code.
  */
 function mapError(err) {
+    if(err.errorCode === "NOT_FOUND"){
+        return {
+            code: err.code,
+            message: err.message
+        }
+    }
+
     return err.isDomain
         ? { status: (ERROR_MAP[err.errorCode] || BAD_REQUEST),
             code: err.code,
