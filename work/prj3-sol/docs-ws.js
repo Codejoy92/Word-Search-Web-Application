@@ -82,20 +82,12 @@ function doGetContent(app) {
                     "href": baseUrl(req, DOCS)+"/"+id
                 }]
             };
-            if (results.length === 0) {
-                throw {
-                    isDomain: true,
-                    errorCode: NOT_FOUND,
-                    message: `user ${id} not found`,
-                };
-            }
-            else {
                 res.json(printValue);
-            }
         }
         catch (err) {
             const mapped = mapError(err);
-            res.status(mapped.status).json(mapped);
+            res.status(mapped.status).json({"code":mapped.code,
+                "message":mapped.message});
         }
     });
 }
