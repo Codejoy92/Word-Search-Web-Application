@@ -220,20 +220,11 @@ function doGetSearch(app) {
                outputValue = {
                    "results": results.slice(start, end),
                    "totalCount": totalCount,
-                   "links": [links]
+                   "links": links
                };
 
-               if (results.length === 0) {
-                   throw {
-                       isDomain: true,
-                       errorCode: 'NOT_FOUND',
-                       message: `${text.q} not found`,
-                   };
-               }
-               else {
-                   res.json(outputValue);
-               }
-           }else{
+                res.json(outputValue);
+              }else{
                throw{
                    isDomain: true,
                    code: "BAD_PARAM",
