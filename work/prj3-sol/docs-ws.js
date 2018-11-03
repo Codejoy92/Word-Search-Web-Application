@@ -85,7 +85,7 @@ function doGetContent(app) {
             if (results.length === 0) {
                 throw {
                     isDomain: true,
-                    errorCode: 'NOT_FOUND',
+                    errorCode: NOT_FOUND,
                     message: `user ${id} not found`,
                 };
             }
@@ -108,7 +108,7 @@ function doGetComplete(app) {
                 throw{
                     isDomain: true,
                     code: "BAD_PARAM",
-                    errorCode: 'BAD_REQUEST',
+                    errorCode: BAD_REQUEST,
                     message: "required query parameter \"text\" is missing"
                 };
             }else {
@@ -148,7 +148,7 @@ function doGetSearch(app) {
                        throw{
                            isDomain: true,
                            code: "BAD_PARAM",
-                           errorCode: 'BAD_REQUEST',
+                           errorCode: BAD_REQUEST,
                            message: "bad query parameter \"start\""
                        };
                    }
@@ -165,7 +165,7 @@ function doGetSearch(app) {
                        throw{
                            isDomain: true,
                            code: "BAD_PARAM",
-                           errorCode: 'BAD_REQUEST',
+                           errorCode: BAD_REQUEST,
                            message: "bad query parameter \"count\""
                        };
                    }
@@ -228,7 +228,7 @@ function doGetSearch(app) {
                throw{
                    isDomain: true,
                    code: "BAD_PARAM",
-                   errorCode: 'BAD_REQUEST',
+                   errorCode: BAD_REQUEST,
                    message: "required query parameter \"q\" is missing"
                };
            }
@@ -264,7 +264,7 @@ function doCreate(app) {
                 throw{
                     isDomain: true,
                     code: "BAD_PARAM",
-                    errorCode: 'BAD_REQUEST',
+                    errorCode: BAD_REQUEST,
                     message: "required query parameter \"name\" is missing"
                 };
             }
@@ -272,7 +272,7 @@ function doCreate(app) {
                 throw{
                     isDomain: true,
                     code: "BAD_PARAM",
-                    errorCode: 'BAD_REQUEST',
+                    errorCode: BAD_REQUEST,
                     message: "required query parameter \"content\" is missing"
                 };
             }
