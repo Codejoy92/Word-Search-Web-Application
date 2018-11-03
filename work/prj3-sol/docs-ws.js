@@ -82,18 +82,12 @@ function doGetContent(app) {
                     "href": baseUrl(req, DOCS)+"/"+id
                 }]
             };
-
-            if(results.length === 0){
-                throw{
-                    code: 'NOT_FOUND',
-                    
-                }
-            }
                 res.json(printValue);
         }
         catch (err) {
+            res.status(NOT_FOUND);
             const mapped = mapError(err);
-            res.status(mapped.status).json({"code":mapped.code,
+            res.json({"code":mapped.code,
                 "message":mapped.message});
         }
     });
@@ -308,9 +302,9 @@ const ERROR_MAP = {
  *  code.
  */
 function mapError(err) {
-    if(err.code === "NOT_FOUND"){
+    if(err.code === 'NOT_FOUND'){
         return {
-            code: err.code,
+            code: 'NOT_FOUND',
             message: err.message
         }
     }
