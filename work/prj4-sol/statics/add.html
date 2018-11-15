@@ -1,0 +1,30 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Add Document</title>
+    <link rel="stylesheet" href="/docs/css/style.css">
+  </head>
+  <body>
+    <h1>Add Document</h1>
+    <ul>
+    </ul>
+    <form action="/docs/add" method="POST" enctype="multipart/form-data">
+      <label>
+        <span class="label">Choose file:</span>
+        <input id="file" name="file" type="file">
+      </label>
+      <br/>
+      <input id="submit" name="submit" type="submit"
+             value="add" class="control">
+    </form>
+
+<footer>
+<ul>
+<li><a id="home" href="/docs/index.html">Home</a></li>
+<li><a id="add" href="/docs/add.html">Document Add</a></li>
+<li><a id="search" href="/docs/search.html">Document Search</a></li>
+</ul>
+</footer>
+  </body>
+</html>
