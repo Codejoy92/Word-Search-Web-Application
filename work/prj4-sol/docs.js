@@ -51,7 +51,8 @@ function setupRoutes(app) {
 
   function redirectAddPost(app){
       return async function (req, res) {
-              let checkName = req.file.originalname;
+              let fileName = req.file;
+              let checkName = fileName.originalname;
               console.log("check name: "+checkName);
               let name = Path.basename(checkName, '.txt');
               let content = req.file.buffer.toString('utf8');
