@@ -34,7 +34,7 @@ function setupRoutes(app) {
     app.get('/',redirect(app));
     app.get('${base}/search',redirectSearch(app));
     app.post('${base}/add',redirectAdd(app));
-    app.post('${base}/:name',redirectGet(app));
+    app.get('${base}/:name',redirectGet(app));
 }
 
 /*************************** Action Routines ***************************/
@@ -67,7 +67,7 @@ function setupRoutes(app) {
   function redirectSearch(app) {
   }
   function redirectAdd(app){
-     
+
   }
 /************************ General Utilities ****************************/
 
