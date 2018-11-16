@@ -34,8 +34,9 @@ function setupRoutes(app) {
     const base = app.locals.base;
     app.get('/',redirect(app));
     app.get(`${base}/:name`,redirectGet(app));
-   // app.get(`${base}/search`,redirectSearch(app));
-    //app.post(`${base}/add`,redirectAdd(app));
+    app.get(`${base}/add.html`,redirectAdd(app));
+    // app.get(`${base}/search`,redirectSearch(app));
+
 
 }
 
@@ -52,7 +53,6 @@ function setupRoutes(app) {
       return async function(req, res) {
           let model;
           const name = req.params.name;
-          const base = app.locals.base;
           try {
               const body = await app.locals.model.getContent(name);
               model = {name: name,
@@ -67,12 +67,42 @@ function setupRoutes(app) {
           res.send(html);
       };
   }
+    function redirectAdd(app){
+        return async function(req, res){
+            let [error, addError] = [[],];
+            const check = false;
+            if(req.body){
+                 if(req.body.submit){
+                     check = true;
+                 }
+            }
+            if(check) {
+                try {
+                    const checkName = "";
+                    if (req.file) {
+                         checkName = req.file.originalname;
+                    }
 
+                    if (checkName) {
+                        let name = Path.basename(checkName, '.txt');
+                        let content = req.file.buffer.toString('utf8');
+                        let result = await app.locals.model.addContent(name, content);
+                        res.redirect(relativeUrl(req, `../${name}`));
+                        return;
+                    } else {
+                        addError = "please select a file to upload"
+                    }
+                }
+                catch (e) {
+                    console.error(e);
+                }
+            }
+            const html = doMustache(app, 'add', base:app.locals.base);
+            res.send(html);
+    }
   function redirectSearch(app) {
   }
-  function redirectAdd(app){
 
-  }
 /************************ General Utilities ****************************/
 
 /** return object containing all non-empty values from object values */

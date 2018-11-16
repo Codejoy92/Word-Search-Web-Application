@@ -19,3 +19,14 @@ DocsWs.prototype.getContent = async function(name) {
         throw (err.response && err.response.data) ? err.response.data : err;
     }
 };
+
+DocsWs.prototype.addContent = async function(name, content) {
+    try {
+        const response = await axios.post(`${this.docsUrl}`, {name, content});
+        return response.data;
+    }
+    catch (err) {
+        console.error(err);
+        throw (err.response && err.response.data) ? err.response.data : err;
+    }
+};
