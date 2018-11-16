@@ -79,7 +79,8 @@ function setupRoutes(app) {
             const view = {base: app.locals.base};
             const html = doMustache(app, 'add', view);
             res.send(html);
-        }
+        };
+    }
   function redirectSearch(app) {
   }
 
