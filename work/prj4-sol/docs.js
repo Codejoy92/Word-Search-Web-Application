@@ -75,7 +75,7 @@ function setupRoutes(app) {
                    postValue = true
                }
            }
-
+            console.log("post "+ postValue);
            if(postValue) {
                 let checkName = req.file.originalname;
                 let name = Path.basename(checkName, '.txt');
