@@ -4,7 +4,7 @@ const express = require('express');
 const upload = require('multer')();
 const fs = require('fs');
 const mustache = require('mustache');
-    const Path = require('path');
+const Path = require('path');
 const { URL } = require('url');
 
 const STATIC_DIR = 'statics';
@@ -69,6 +69,7 @@ function setupRoutes(app) {
     function redirectAdd(app) {
         return async function (req, res) {
            let postValue = false;
+           console.log(req.file.originalname);
            if(req.body){
                if(req.body.submit){
                    postValue = true
