@@ -35,6 +35,7 @@ function setupRoutes(app) {
     app.get('/',redirect(app));
     app.get(`${base}/:name`,redirectGet(app));
     app.get(`${base}/add.html`,redirectAdd(app));
+ //   app.post(`${base}/add.html`,redirectAddPost(app));
     // app.get(`${base}/search`,redirectSearch(app));
 
 
@@ -69,13 +70,16 @@ function setupRoutes(app) {
   }
     function redirectAdd(app) {
         return async function (req, res) {
-
-            let checkName = req.file.originalname;
-            let name = Path.basename(checkName, '.txt');
-            let content = req.file.buffer.toString('utf8');
-            let result = await app.locals.model.addContent(name, content);
-            console.log(result);
-            res.redirect(relativeUrl(req, `../${name}`));
+            const postValue = req.body && req.body.submit !== undefined;
+            if(postValue) {
+                let checkName = req.file.originalname;
+                let name = Path.basename(checkName, '.txt');
+                let content = req.file.buffer.toString('utf8');
+                let result = await app.locals.model.addContent(name, content);
+                console.log(result);
+                res.redirect(relativeUrl(req, `../${name}`));
+                return;
+            }
             const view = {base: app.locals.base};
             const html = doMustache(app, 'add', view);
             res.send(html);
