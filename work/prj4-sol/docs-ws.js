@@ -22,6 +22,8 @@ DocsWs.prototype.getContent = async function(name) {
 
 DocsWs.prototype.addContent = async function(name, content) {
     try {
+        console.log("docswsName "+name);
+        console.log("docsContent "+content);
         const response = await axios.post(`${this.docsUrl}`, {name, content});
         return response.data;
     }
