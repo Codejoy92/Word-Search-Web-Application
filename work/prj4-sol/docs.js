@@ -70,6 +70,7 @@ function setupRoutes(app) {
     function redirectAdd(app){
         return async function(req, res){
             let [error, addError] = [[],];
+            let model;
             const check = false;
             if(req.body){
                  if(req.body.submit){
@@ -95,9 +96,11 @@ function setupRoutes(app) {
                 }
                 catch (e) {
                     console.error(e);
+                    model = {base, errors:[e.toString() || e.message ]};
                 }
             }
-            const html = doMustache(app, 'add', base:app.locals.base);
+            const view  = {base: app.locals.base};
+            const html = doMustache(app, 'add', view);
             res.send(html);
     }
   function redirectSearch(app) {
