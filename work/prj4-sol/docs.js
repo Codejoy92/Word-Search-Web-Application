@@ -32,8 +32,8 @@ module.exports = serve;
 function setupRoutes(app) {
   //@TODO add appropriate routes
     app.get('/',redirect(app));
-    app.get('${base}/search',redirectSearch(app));
-    app.post('${base}/add',redirectAdd(app));
+   // app.get('${base}/search',redirectSearch(app));
+    //app.post('${base}/add',redirectAdd(app));
     app.get('${base}/:name',redirectGet(app));
 }
 
@@ -53,7 +53,9 @@ function setupRoutes(app) {
           const base = app.locals.base;
           try {
               const body = await app.locals.model.getContent(name);
-              model = {name, content:body.content, base };
+              model = {name: name,
+                       content:body.content,
+                        base: app.locals.base };
           }
           catch (err) {
               console.error(err);
