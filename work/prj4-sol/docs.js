@@ -4,7 +4,7 @@ const express = require('express');
 const upload = require('multer')();
 const fs = require('fs');
 const mustache = require('mustache');
-const Path = require('path');
+    const Path = require('path');
 const { URL } = require('url');
 
 const STATIC_DIR = 'statics';
@@ -69,41 +69,16 @@ function setupRoutes(app) {
   }
     function redirectAdd(app) {
         return async function (req, res) {
-            let [error, addError] = [[],];
-            let model;
-            const check = false;
-            if (req.body) {
-                if (req.body.submit) {
-                    check = true;
-                }
-            }
-            if (check) {
-                try {
-                    const checkName = "";
-                    if (req.file) {
-                        checkName = req.file.originalname;
-                    }
 
-                    if (checkName) {
-                        let name = Path.basename(checkName, '.txt');
-                        let content = req.file.buffer.toString('utf8');
-                        let result = await app.locals.model.addContent(name, content);
-                        res.redirect(relativeUrl(req, `../${name}`));
-                        return;
-                    } else {
-                        addError = "please select a file to upload"
-                    }
-                }
-                catch (e) {
-                    console.error(e);
-                    model = {base, errors: [e.toString() || e.message]};
-                }
-            }
+            let checkName = req.file.originalname;
+            let name = Path.basename(checkName, '.txt');
+            let content = req.file.buffer.toString('utf8');
+            let result = await app.locals.model.addContent(name, content);
+            res.redirect(relativeUrl(req, `../${name}`));
             const view = {base: app.locals.base};
             const html = doMustache(app, 'add', view);
             res.send(html);
-        };
-    }
+        }
   function redirectSearch(app) {
   }
 
