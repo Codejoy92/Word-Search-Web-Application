@@ -34,10 +34,8 @@ function setupRoutes(app) {
     const base = app.locals.base;
     app.get('/',redirect(app));
     app.get(`${base}/add.html`,redirectAdd(app));
- //   app.post(`${base}/add.html`,redirectAddPost(app));
-    // app.get(`${base}/search`,redirectSearch(app));
+ // app.get(`${base}/search`,redirectSearch(app));
     app.get(`${base}/:name`,redirectGet(app));
-
 
 }
 
@@ -70,7 +68,22 @@ function setupRoutes(app) {
   }
     function redirectAdd(app) {
         return async function (req, res) {
+           let postValue = false;
+           if(req.body){
+               if(req.body.submit){
+                   postValue = true
+               }
+           }
 
+           if(postValue) {
+                let checkName = req.file.originalname;
+                let name = Path.basename(checkName, '.txt');
+                let content = req.file.buffer.toString('utf8');
+                let result = await app.locals.model.addContent(name, content);
+                console.log(result);
+                res.redirect(relativeUrl(req, `../${name}`));
+                return;
+            }
             const view = {base: app.locals.base};
             const html = doMustache(app, 'add', view);
             res.send(html);
