@@ -4,8 +4,6 @@ const axios = require('axios');
 
 function DocsWs(baseUrl) {
   this.docsUrl = `${baseUrl}/docs`;
-  this.addUrl = `${baseUrl}/docs/add`;
-  this.searchUrl = `${baseUrl}/docs/search`;
 }
 
 module.exports = DocsWs;

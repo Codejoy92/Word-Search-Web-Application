@@ -31,10 +31,12 @@ module.exports = serve;
 
 function setupRoutes(app) {
   //@TODO add appropriate routes
+    const base = app.locals.base;
     app.get('/',redirect(app));
+    app.get('${base}/:name',redirectGet(app));
    // app.get('${base}/search',redirectSearch(app));
     //app.post('${base}/add',redirectAdd(app));
-    app.get('${base}/:name',redirectGet(app));
+
 }
 
 /*************************** Action Routines ***************************/
