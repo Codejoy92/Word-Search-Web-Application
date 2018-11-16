@@ -67,21 +67,21 @@ function setupRoutes(app) {
           res.send(html);
       };
   }
-    function redirectAdd(app){
-        return async function(req, res){
+    function redirectAdd(app) {
+        return async function (req, res) {
             let [error, addError] = [[],];
             let model;
             const check = false;
-            if(req.body){
-                 if(req.body.submit){
-                     check = true;
-                 }
+            if (req.body) {
+                if (req.body.submit) {
+                    check = true;
+                }
             }
-            if(check) {
+            if (check) {
                 try {
                     const checkName = "";
                     if (req.file) {
-                         checkName = req.file.originalname;
+                        checkName = req.file.originalname;
                     }
 
                     if (checkName) {
@@ -96,12 +96,13 @@ function setupRoutes(app) {
                 }
                 catch (e) {
                     console.error(e);
-                    model = {base, errors:[e.toString() || e.message ]};
+                    model = {base, errors: [e.toString() || e.message]};
                 }
             }
-            const view  = {base: app.locals.base};
+            const view = {base: app.locals.base};
             const html = doMustache(app, 'add', view);
             res.send(html);
+        };
     }
   function redirectSearch(app) {
   }
