@@ -31,12 +31,44 @@ module.exports = serve;
 
 function setupRoutes(app) {
   //@TODO add appropriate routes
+    app.get('/',redirect(app));
+    app.get('${base}/search',redirectSearch(app));
+    app.post('${base}/add',redirectAdd(app));
+    app.post('${base}/:name',redirectGet(app));
 }
 
 /*************************** Action Routines ***************************/
 
 //@TODO add action routines for routes + any auxiliary functions.
+  function redirect(app){
+    return async function (req, res){
+      res.redirect('/docs');
+    }
+  }
 
+  function redirectGet(app){
+      return async function(req, res) {
+          let model;
+          const name = req.params.name;
+          const base = app.locals.base;
+          try {
+              const body = await app.locals.model.getContent(name);
+              model = {name, content:body.content, base };
+          }
+          catch (err) {
+              console.error(err);
+              model = {base, errors:[err.toString() || err.message ]};
+          }
+          const html = doMustache(app, 'content', model);
+          res.send(html);
+      };
+  }
+
+  function redirectSearch(app) {
+  }
+  function redirectAdd(app){
+     
+  }
 /************************ General Utilities ****************************/
 
 /** return object containing all non-empty values from object values */
