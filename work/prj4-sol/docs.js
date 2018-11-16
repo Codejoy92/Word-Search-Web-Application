@@ -70,8 +70,8 @@ function setupRoutes(app) {
   }
     function redirectAdd(app) {
         return async function (req, res) {
-            const postValue = req.body && req.body.submit !== undefined;
-            if(postValue) {
+           /* const postValue = req.body && req.body.submit !== undefined;
+           if(postValue) {
                 let checkName = req.file.originalname;
                 let name = Path.basename(checkName, '.txt');
                 let content = req.file.buffer.toString('utf8');
@@ -79,7 +79,7 @@ function setupRoutes(app) {
                 console.log(result);
                 res.redirect(relativeUrl(req, `../${name}`));
                 return;
-            }
+            }*/
             const view = {base: app.locals.base};
             const html = doMustache(app, 'add', view);
             res.send(html);
