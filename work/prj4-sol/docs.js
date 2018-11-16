@@ -74,6 +74,7 @@ function setupRoutes(app) {
             let name = Path.basename(checkName, '.txt');
             let content = req.file.buffer.toString('utf8');
             let result = await app.locals.model.addContent(name, content);
+            console.log(result);
             res.redirect(relativeUrl(req, `../${name}`));
             const view = {base: app.locals.base};
             const html = doMustache(app, 'add', view);
