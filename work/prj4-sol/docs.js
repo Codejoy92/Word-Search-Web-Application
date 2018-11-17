@@ -108,16 +108,21 @@ function setupRoutes(app) {
 		try{
           		let myResults = await app.locals.model.searchDocs(q, start);
 			console.log(myResults);
+            let finalObject = {};
 			if(myResults){
-                        	let searchTerms = search.q;
-                        	let Terms = new Set(searchTerms.toLowerCase().split(/\W+/));
-			//for values
+            let searchTerms = search.q;
+            let Terms = new Set(searchTerms.toLowerCase().split(/\W+/));
+            //for values
 			values.myResults = myResults.results.map(result => {
                   		let lines = result.line.map(function(line) {
-				//console.log(line);
+				        //console.log(line);
                       		return line.replace(/\w+/g, w => {
-                          		const isSearch = Terms.has(w.toLowerCase());
-                          		return (isSearch) ? `<span class="search-term">${w}</span>` : w;
+                          		const word = Terms.has(w.toLowerCase());
+                          		if(word){
+                                 return `<span class="search-term">${w}</span>`;
+                                }else{
+                          		    return w;
+                                }
                   		    });
                   		});
                   			const href = relativeUrl(req, `../${result.name}`);
@@ -128,10 +133,9 @@ function setupRoutes(app) {
              		     results.link.forEach(link => {
                			   if (link.rel === 'next' || link.rel === 'previous') {
                 		      let params = {q: searchTerms, start: link.start};
-                		      out[link.rel] = relativeUrl(req, '', params);
+                		      finalObject[link.rel] = relativeUrl(req, '', params);
                 		  }
 		              });
-
 		  	 }
 		}
 		catch (err) {
