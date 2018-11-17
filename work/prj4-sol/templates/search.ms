@@ -7,7 +7,7 @@
 <body>
     <h1>Documents Collection Search</h1>
 
-<form method = "GET" action ="{{{base}}}/search.html">
+<form action ="{{{base}}}/search.html" method = "GET">
 <p>
 Please fill in one or more search terms in the field below:
 </p>
@@ -18,6 +18,25 @@ Please fill in one or more search terms in the field below:
     <br/>
     <input id = "submit" name = "submit" type = "submit" value = "search" class = "control">
 </form>
+
+{{#results.length}}
+        <h2>Search Results </h2>
+    {{#results}}
+        <p class = "result">
+            <a class = "doc-name" href= "{{href}}">{{name}}</a><br>
+            {{#lines}}{{{.}}}<br>{{/lines}}
+        </p>
+    {{/results}}
+    {{#previous}}
+        <a id="previous" href="{{previous}}">Previous</a>
+    {{/previous}}
+   
+    {{#next}}
+	<a id = "next" href = "{{next}}">Next</a>
+    {{/next}}
+
+{{/results.length}}
+
 {{>footer}}
 </body>
 </html>

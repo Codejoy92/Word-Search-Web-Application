@@ -6,7 +6,7 @@ const fs = require('fs');
 const mustache = require('mustache');
 const Path = require('path');
 const { URL } = require('url');
-
+const querystring = require('querystring');
 const STATIC_DIR = 'statics';
 const TEMPLATES_DIR = 'templates';
 
@@ -53,11 +53,9 @@ function setupRoutes(app) {
       return async function (req, res) {
               let fileName = req.file;
               let checkName = fileName.originalname;
-              console.log("check name: "+checkName);
               let name = Path.basename(checkName, '.txt');
               let content = req.file.buffer.toString('utf8');
               let result = await app.locals.model.addContent(name, content);
-              console.log(result);
               res.redirect(relativeUrl(req, `../${name}`));
       }
   }
@@ -89,17 +87,42 @@ function setupRoutes(app) {
     }
   function redirectSearch(app) {
       return async function (req, res) {
-	  console.log(req.key);
 	  let results = {};
-          let key = req.query;
-          let value =  Object.keys(key);
-          let length = value.length;
-          let search = getNonEmptyValues(key);
-          let {q, start} = search;
+          //let key = req.query && Object.keys(req.query) && Object.keys(req.query).length;
+          let isSubmit1 = req.query;
+	  let isSubmit = isSubmit1.submit
+	  let errors = undefined;
+	  let search = getNonEmptyValues(req.query);
+	  let {q, start} = search;
 
-	  const base = {base:app.locals.base};
+	  if(isSubmit){
+		//errors = validate(search);
+		//if (Object.keys(search).length == 0) {
+		//	const msg = 'at least one search parameter must be specified';
+		//	errors = Object.assign(errors || {}, { _: msg });
+     		// }
+		//if(!errors){
+		//}
+
+          	let output ={};
+		try{
+          		let myResults = await app.locals.model.searchDocs(q, start);
+			console.log("myResults:"+myResults);
+			if(myResults){
+                        	let searchTerms = search.q;
+                        	let Terms = new Set(searchTerms.toLowerCase().split(/\W+/));
+  		              }
+		   }
+		catch (err) {
+         	 	console.error(err);
+	  		errors = wsErrors(err);
+		}
+		return;
+
+	  }
+
           const self = 'search.html';
-          const model = {base, q, results};
+          const model = {base : app.locals.base, results};
           const html = doMustache(app, 'search', model);
           res.send(html);
       };
