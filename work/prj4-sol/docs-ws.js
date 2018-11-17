@@ -36,7 +36,7 @@ DocsWs.prototype.addContent = async function(name, content) {
 
 DocsWs.prototype.searchDocs = async function(searchTerms, start) {
     try {
-	let url = this.docsUrl+"/search.html?q="+searchTerms+"&submit="+start;
+	let url = this.docsUrl+"?q="+searchTerms+"&submit="+start;
 	console.log("url:"+url);
         const response = await axios.get(url);
         return response.data;

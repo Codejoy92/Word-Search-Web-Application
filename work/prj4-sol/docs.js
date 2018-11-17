@@ -104,15 +104,36 @@ function setupRoutes(app) {
 		//if(!errors){
 		//}
 
-          	let output ={};
+          	let values ={};
 		try{
           		let myResults = await app.locals.model.searchDocs(q, start);
-			console.log("myResults:"+myResults);
+			console.log(myResults);
 			if(myResults){
                         	let searchTerms = search.q;
                         	let Terms = new Set(searchTerms.toLowerCase().split(/\W+/));
-  		              }
-		   }
+			//for values
+			values.myResults = myResults.results.map(result => {
+                  		let lines = result.line.map(function(line) {
+				//console.log(line);
+                      		return line.replace(/\w+/g, w => {
+                          		const isSearch = Terms.has(w.toLowerCase());
+                          		return (isSearch) ? `<span class="search-term">${w}</span>` : w;
+                  		    });
+                  		});
+                  			const href = relativeUrl(req, `../${result.name}`);
+                  			return Object.assign({}, result, {lines, href});
+              			});
+
+			//for links
+             		     results.link.forEach(link => {
+               			   if (link.rel === 'next' || link.rel === 'previous') {
+                		      let params = {q: searchTerms, start: link.start};
+                		      out[link.rel] = relativeUrl(req, '', params);
+                		  }
+		              });
+
+		  	 }
+		}
 		catch (err) {
          	 	console.error(err);
 	  		errors = wsErrors(err);
