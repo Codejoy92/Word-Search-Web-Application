@@ -89,41 +89,6 @@ function setupRoutes(app) {
     }
   function redirectSearch(app) {
       return async function (req, res) {
-          let results = {};
-          let key = req.query;
-          let value =  Object.keys(key);
-          let length = value.length;
-          let search = getNonEmptyValues(key);
-          let {q, start} = search;
-          if(key){
-          let output ={};
-          let myResults = await app.locals.model.searchDocs(q, start);
-          if(myResults) {
-              let searchterms = search.q;
-              let words = new Set(searchterms.toLowerCase().split(/\W+/));
-              output.myResults = myResults.results.map(result => {
-                  const lines = result.line.map(line => {
-                      return line.replace(/\w+/g, w => {
-                          const isSearch = words.has(w.toLowerCase());
-                          return (isSearch) ? `<span class="search-term">${w}</span>` : w;
-                      });
-                  });
-                  const href = relativeUrl(req, `../${result.name}`);
-                  return Object.assign({}, result, {lines, href});
-              });
-              results.link.forEach(link => {
-                  if (link.rel === 'next' || link.rel === 'previous') {
-                      const params = {q: searchTerms, start: link.start};
-                      out[link.rel] = relativeUrl(req, '', params);
-                  }
-              });
-            }
-          }
-        const base = app.locals.base;
-          const self = 'search.html';
-          const model = Object.assign({}, results, {base, q, self});
-          const html = doMustache(app, 'search', model);
-          res.send(html);
       };
   }
 
