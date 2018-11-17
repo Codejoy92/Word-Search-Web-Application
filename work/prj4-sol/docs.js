@@ -35,7 +35,7 @@ function setupRoutes(app) {
     app.get('/',redirect(app));
     app.get(`${base}/add.html`,redirectAdd(app));
     app.post(`${base}/add`,upload.single('file'), redirectAddPost(app));
-    app.get(`${base}/search`,redirectSearch(app));
+    app.get(`${base}/search.html`,redirectSearch(app));
     app.get(`${base}/:name`,redirectGet(app));
 
 }
@@ -89,6 +89,19 @@ function setupRoutes(app) {
     }
   function redirectSearch(app) {
       return async function (req, res) {
+	  console.log(req.key);
+	  let results = {};
+          let key = req.query;
+          let value =  Object.keys(key);
+          let length = value.length;
+          let search = getNonEmptyValues(key);
+          let {q, start} = search;
+
+	  const base = {base:app.locals.base};
+          const self = 'search.html';
+          const model = {base, q, results};
+          const html = doMustache(app, 'search', model);
+          res.send(html);
       };
   }
 

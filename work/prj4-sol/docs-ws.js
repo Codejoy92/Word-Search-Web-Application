@@ -41,7 +41,7 @@ DocsWs.prototype.searchDocs = async function(searchTerms, start) {
         if(start){
             params.start = start;
         }
-        const response = await axios.get(url, {params});
+        const response = await axios.get(url, {params:params});
         return response.data;
     }
     catch (err) {

@@ -16,22 +16,8 @@ Please fill in one or more search terms in the field below:
         <input id = "query" name = "q" value = "{{q}}">
     </label>
     <br/>
-    <input id = "submit" name = "submit" type = "submit" value = "Search" class = "control">
+    <input id = "submit" name = "submit" type = "submit" value = "search" class = "control">
 </form>
-
-    {{#results.length}}
-        <h2>Search Results </h2>
-    {{#results}}
-        <p class = "result">
-            <a class = "doc-name" href= "{{href}}">{{name}}</a><br>
-            {{#lines}}{{{.}}}<br>{{/lines}}
-        </p>
-    {{/results}}
-    {{#previous}}
-        <a id="previous" href="{{previous}}">Previous</a>
-         {{/previous}}
-        {{#next}}<a id = "next" href = "{{next}}">Next</a>{{/next}}
-    {{/results.length}}
 {{>footer}}
 </body>
 </html>
