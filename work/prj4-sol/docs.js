@@ -82,13 +82,8 @@ function setupRoutes(app) {
   }
     function redirectAdd(app) {
         return async function (req, res) {
-            let postValue = false;
-           if(req.body){
-               if(req.body.submit){
-                   postValue = true
-               }
-           }
-           // console.log("post "+ postValue);
+            let postValue = req.body && req.body.submit !== undefined;
+            console.log("post "+ postValue);
             if(postValue) {
                 let fileName = req.file;
                 let checkName = fileName.originalname;
