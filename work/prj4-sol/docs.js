@@ -34,8 +34,8 @@ function setupRoutes(app) {
     const base = app.locals.base;
     app.get('/',redirect(app));
     app.get(`${base}/add.html`,redirectAdd(app));
- //   app.post(`${base}/add`,upload.single('file'), redirectAddPost(app));
- // app.get(`${base}/search`,redirectSearch(app));
+    app.post(`${base}/add`,upload.single('file'), redirectAddPost(app));
+    app.get(`${base}/search`,redirectSearch(app));
     app.get(`${base}/:name`,redirectGet(app));
 
 }
@@ -82,25 +82,49 @@ function setupRoutes(app) {
   }
     function redirectAdd(app) {
         return async function (req, res) {
-            let postValue = req.body && req.body.submit !== undefined;
-            console.log("post "+ postValue);
-            if(postValue) {
-                let fileName = req.file;
-                let checkName = fileName.originalname;
-                console.log("check name: " + checkName);
-                let name = Path.basename(checkName, '.txt');
-                let content = req.file.buffer.toString('utf8');
-                let result = await app.locals.model.addContent(name, content);
-                console.log(result);
-                res.redirect(relativeUrl(req, `../${name}`));
-            }
-            //for view
             const view = {base: app.locals.base};
             const html = doMustache(app, 'add', view);
             res.send(html);
         };
     }
   function redirectSearch(app) {
+      return async function (req, res) {
+          let results = {};
+          let key = req.query;
+          let value =  Object.keys(key);
+          let length = value.length;
+          let search = getNonEmptyValues(key);
+          let {q, start} = search;
+          if(key){
+          let output ={};
+          let myResults = await app.locals.model.searchDocs(q, start);
+          if(myResults) {
+              let searchterms = search.q;
+              let words = new Set(searchterms.toLowerCase().split(/\W+/));
+              output.myResults = myResults.results.map(result => {
+                  const lines = result.line.map(line => {
+                      return line.replace(/\w+/g, w => {
+                          const isSearch = words.has(w.toLowerCase());
+                          return (isSearch) ? `<span class="search-term">${w}</span>` : w;
+                      });
+                  });
+                  const href = relativeUrl(req, `../${result.name}`);
+                  return Object.assign({}, result, {lines, href});
+              });
+              results.link.forEach(link => {
+                  if (link.rel === 'next' || link.rel === 'previous') {
+                      const params = {q: searchTerms, start: link.start};
+                      out[link.rel] = relativeUrl(req, '', params);
+                  }
+              });
+            }
+          }
+        const base = app.locals.base;
+          const self = 'search.html';
+          const model = Object.assign({}, results, {base, q, self});
+          const html = doMustache(app, 'search', model);
+          res.send(html);
+      };
   }
 
 /************************ General Utilities ****************************/
