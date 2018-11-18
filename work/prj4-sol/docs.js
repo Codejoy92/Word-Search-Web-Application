@@ -87,73 +87,72 @@ function setupRoutes(app) {
     }
   function redirectSearch(app) {
       return async function (req, res) {
-	  let results = {};
+          let results = {};
           //let key = req.query && Object.keys(req.query) && Object.keys(req.query).length;
           let isSubmit1 = req.query;
-	  let isSubmit = isSubmit1.submit
-	  let errors = undefined;
-	  let search = getNonEmptyValues(req.query);
-	  let {q, start} = search;
+          let isSubmit = isSubmit1.submit
+          let errors = undefined;
+          let search = getNonEmptyValues(req.query);
+          let {q, start} = search;
 
-	  if(isSubmit){
-		//errors = validate(search);
-		//if (Object.keys(search).length == 0) {
-		//	const msg = 'at least one search parameter must be specified';
-		//	errors = Object.assign(errors || {}, { _: msg });
-     		// }
-		//if(!errors){
-		//}
+          if (isSubmit) {
+              //errors = validate(search);
+              //if (Object.keys(search).length == 0) {
+              //	const msg = 'at least one search parameter must be specified';
+              //	errors = Object.assign(errors || {}, { _: msg });
+              // }
+              //if(!errors){
+              //}
 
-          	let values ={};
-		try{
-          		results = await app.locals.model.searchDocs(q, start);
-			//console.log(results);
-            		let finalObject = {};
-	            	if(results!==undefined){
-            			let searchTerms = search.q;
-            			let Terms = new Set(searchTerms.toLowerCase().split(/\W+/));
-            		//for values
-					let valueCounter = 0;
-					for(let value of results['results']){
-					//console.log(value['lines']);
+              let values = {};
+              try {
+                  results = await app.locals.model.searchDocs(q, start);
+                  //console.log(results);
+                  let finalObject = {};
+                  if (results !== undefined) {
+                      let searchTerms = search.q;
+                      let Terms = new Set(searchTerms.toLowerCase().split(/\W+/));
+                      //for values
+                      let valueCounter = 0;
+                      for (let value of results['results']) {
+                          //console.log(value['lines']);
+                          let lineLength = value.lines.length;
+                          for (let i = 0; i < lineLength; i++) {
+                              //console.log(results['results'][valueCounter]);
+                              let singleLine = results['results'][valueCounter]['lines'][i];
+                              for (let term of Terms) {
+                                  if (singleLine.toLowerCase().includes(term)) {
+                                      singleLine.replace(term, `<span class="search-term">${term}</span>`);
+                                  }
+                              }//end of term for loop
+                          }//end of line for loop
+                          valueCounter = valueCounter + 1;
+                          const href = relativeUrl(req, `../${results['results'][valueCounter]['name']}`);
+                          console.log(href);
+                      }//end of result for loop
+                  }//end of if
+                  //for links
+                  //console.log(results['links']);
 
-						let lineLength = value.lines.length;
-						for(let i = 0 ; i < lineLength ; i++){
-				//			console.log(results['results'][valueCounter]);
-	                      				let singleLine = results['results'][valueCounter]['lines'][i];
-							for(let term of Terms){
-								if(singleLine.toLowerCase().includes(term)){
-									singleLine.replace(term,`<span class="search-term">${term}</span>`);
-								}
-							}
-	                  			   }
-					//	console.log( results['results'][valueCounter]['lines'][i]);
-	                  		}
-	                  			const href = relativeUrl(req, `../${results['results'][valueCounter]['name']}`);
-						valueCounter = valueCounter +1;
-			}
-			//for links
-			//console.log(results['links']);
+                  results['links'].forEach(link => {
+                      if (link.rel === 'next' || link.rel === 'previous') {
+                          let params = {q: search.q, start: link.start};
+                          //console.log(req);
+                          results['rel'][link.rel] = relativeUrl(req, '', params);
+                      }//end of id
+                  });//end of foreach
+                  console.log(results);
+              }//end of try
+              catch (err) {
+                  console.error(err);
+                  errors = wsErrors(err);
+              }
 
-             		     results['links'].forEach(link => {
-               			   if (link.rel === 'next' || link.rel === 'previous') {
-                		      let params = {q: search.q, start: link.start};
-					//console.log(req);
-                		      results['rel'][link.rel] = relativeUrl(req, '', params);
-                		  }
-		              });
-				console.log(results);
-		  	}
-		catch (err) {
-         	 	console.error(err);
-	  		errors = wsErrors(err);
-		}
-
-	  }
-	//  console.log(results);
-          const model = {base : app.locals.base, results: results.results};
+          }
+          //  console.log(results);
+          const model = {base: app.locals.base, results: results.results};
           const html = doMustache(app, 'search', model);
-	//  console.log(html);
+          //  console.log(html);
           res.send(html);
       };
   }
