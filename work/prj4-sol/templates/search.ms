@@ -13,7 +13,7 @@ Please fill in one or more search terms in the field below:
 </p>
     <label>
         <span class = "label">Search Terms:</span>
-        <input id = "query" name = "q" value = "{{q}}">
+        <input id = "query" name = "q" value = "{{{s}}}">
     </label>
     <br/>
     <input id = "submit" name = "submit" type = "submit" value = "search" class = "control">
@@ -28,7 +28,7 @@ Please fill in one or more search terms in the field below:
     {{/results}}
 
     {{#links}}
-    	<a type="submit" id={{rel}} href="{{href}}">{{rel}}</a>
+    	<a id={{rel}} href="{{href}}">{{rel}}</a>
     {{/links}}
 {{>footer}}
 </body>

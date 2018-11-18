@@ -36,15 +36,15 @@ DocsWs.prototype.addContent = async function(name, content) {
 
 DocsWs.prototype.searchDocs = async function(searchTerms, start) {
     try {
-//	let url = "";
-//	if(start === "submit" ){
-//		url = this.docsUrl+"?q="+searchTerms+"&submit=search";
-//	}else if(start !== undefined){
-//		url = this.docsUrl+"?q="+searchTerms+"&start="+start;
-//	}else{
-		let url = this.docsUrl+"?q="+searchTerms;
-//	}
-	//console.log("url:"+url);
+	let url = "";
+	if(start === "submit" ){
+		url = this.docsUrl+"?q="+searchTerms+"&submit=search";
+	}else if(!isNaN(Number(start))){
+		url = this.docsUrl+"?q="+searchTerms+"&start="+start;
+	}else{
+		 url = this.docsUrl+"?q="+searchTerms;
+	}
+	console.log("url:"+url);
         const response = await axios.get(url);
         return response.data;
     }

@@ -92,11 +92,11 @@ function setupRoutes(app) {
           //let key = req.query && Object.keys(req.query) && Object.keys(req.query).length;
           let isSubmit1 = req.query;
           let isSubmit = isSubmit1.submit
+	  let isStart = isSubmit1.start;
           let errors = undefined;
           let search = getNonEmptyValues(req.query);
           let {q, start} = search;
-
-          if (isSubmit) {
+          if ((isSubmit && search.q !==undefined) || isStart ) {
               //errors = validate(search);
               //if (Object.keys(search).length == 0) {
               //	const msg = 'at least one search parameter must be specified';
@@ -160,7 +160,7 @@ function setupRoutes(app) {
 
           }
           //  console.log(results);
-          const model = {base: app.locals.base, results: results.results, links: links,};
+          const model = {base: app.locals.base, results: results.results, links: links, s: search.q};
           const html = doMustache(app, 'search', model);
           //  console.log(html);
           res.send(html);
