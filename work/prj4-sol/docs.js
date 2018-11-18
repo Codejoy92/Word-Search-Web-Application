@@ -109,6 +109,7 @@ function setupRoutes(app) {
               try {
                   results = await app.locals.model.searchDocs(q, start);
                   //console.log(results);
+			const href1 = [];
                   let finalObject = {};
                   if (results !== undefined) {
                       let searchTerms = search.q;
@@ -127,14 +128,14 @@ function setupRoutes(app) {
                               for (let j = 0 ; j < indexlength ; j++) {
                                   if (Terms.has(variable[j].toLowerCase())) {
 					console.log(variable[j]);
-                                   results['results'][valueCounter]['lines'][i] = singleLine.replace(variable[j], `<span class="search-term">${variable[j]}</span>`);
-
-				      console.log(singleLine);
+                                        results['results'][valueCounter]['lines'][i] = singleLine.replace(variable[j], `<span class="search-term">${variable[j]}</span>`);
+ 	  			        console.log(singleLine);
                                   }
                               }//end of term for loop
                           }//end of line for loop
-                          const href = relativeUrl(req, `../${results['results'][valueCounter]['name']}`);
-			  valueCounter = valueCounter + 1;
+			results['results'][valueCounter]['href']= relativeUrl(req, `../${results['results'][valueCounter]['name']}`);
+                        console.log(results['results'][valueCounter]['href']);
+			valueCounter = valueCounter + 1;
                         //  console.log(href);
                       }//end of result for loop
                   }//end of if
@@ -159,7 +160,7 @@ function setupRoutes(app) {
 
           }
           //  console.log(results);
-          const model = {base: app.locals.base, results: results.results, links: links};
+          const model = {base: app.locals.base, results: results.results, links: links,};
           const html = doMustache(app, 'search', model);
           //  console.log(html);
           res.send(html);

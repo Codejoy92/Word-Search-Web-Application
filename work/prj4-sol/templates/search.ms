@@ -22,13 +22,13 @@ Please fill in one or more search terms in the field below:
         <h2>Search Results </h2>
     {{#results}}
         <p class = "result">
-            <a class = "doc-name" href= "{{href}}">{{name}}</a><br>
+            <a class = "doc-name" href="{{href}}">{{name}}</a><br>
             {{#lines}}{{{.}}}<br>{{/lines}}
         </p>
     {{/results}}
 
     {{#links}}
-    	<a id={{rel}} href="{{href}}">{{rel}}</a>
+    	<a type="submit" id={{rel}} href="{{href}}">{{rel}}</a>
     {{/links}}
 {{>footer}}
 </body>
