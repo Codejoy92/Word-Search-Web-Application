@@ -30,7 +30,6 @@ module.exports = serve;
 /******************************** Routes *******************************/
 
 function setupRoutes(app) {
-  //@TODO add appropriate routes
     const base = app.locals.base;
     app.get('/',redirect(app));
     app.get(`${base}/add.html`,redirectAdd(app));
@@ -51,12 +50,27 @@ function setupRoutes(app) {
 
   function redirectAddPost(app){
       return async function (req, res) {
+          let addError = "";
+          let errors = [];
+          try {
               let fileName = req.file;
-              let checkName = fileName.originalname;
-              let name = Path.basename(checkName, '.txt');
-              let content = req.file.buffer.toString('utf8');
-              let result = await app.locals.model.addContent(name, content);
-              res.redirect(relativeUrl(req, `../${name}`));
+              if(fileName) {
+                  let checkName = fileName.originalname;
+                  let name = Path.basename(checkName, '.txt');
+                  let content = req.file.buffer.toString('utf8');
+                  let result = await app.locals.model.addContent(name, content);
+                  res.redirect(relativeUrl(req, `../${name}`));
+                  return;
+              }else{
+                  addError = "please select a file containing a document to upload";
+              }
+          }catch(err){
+              console.error(err);
+              errors = [err.message || err.toString()];
+          }
+          const viewModel = {base: app.locals.base, errors, addError};
+          const html = doMustache(app, 'add', viewModel);
+          res.send(html);
       }
   }
 
@@ -88,79 +102,83 @@ function setupRoutes(app) {
   function redirectSearch(app) {
       return async function (req, res) {
           let results = {};
-	  let links = [];
-	  let heading = undefined;
+          let links = [];
+          let heading = undefined;
           //let key = req.query && Object.keys(req.query) && Object.keys(req.query).length;
           let isSubmit1 = req.query;
           let isSubmit = isSubmit1.submit
-	  let isStart = isSubmit1.start;
+          let isStart = isSubmit1.start;
           let errors = undefined;
           let search = getNonEmptyValues(req.query);
           let {q, start} = search;
-	  let errorMsg = undefined;
-          if ((isSubmit && search.q !== undefined)|| isStart ) {
-              if(q) {
-              	errorMsg = 'Please specify one-or-more search terms';
-              	errors = Object.assign(errors || {}, { _: errorMsg });
-               }
-
-              let values = {};
-              try {
-                  results = await app.locals.model.searchDocs(q, start);
-                  //console.log(results);
-			const href1 = [];
-                  let finalObject = {};
-                  if (results !== undefined) {
-		      heading = "Search Results";
-                      let searchTerms = search.q;
-                      let Terms = new Set(searchTerms.toLowerCase().split(/\W+/));
-                      //for values
-                      let valueCounter = 0;
-                      for (let value of results['results']) {
-                          //console.log(value['lines']);
-                          let lineLength = value.lines.length;
-                          for (let i = 0; i < lineLength; i++) {
-                              //console.log(results['results'][valueCounter]);
-                              let singleLine = results['results'][valueCounter]['lines'][i];
-
-			      let variable = singleLine.split(/\W+/);
-			      let indexlength = variable.length;
-                              for (let j = 0 ; j < indexlength ; j++) {
-                                  if (Terms.has(variable[j].toLowerCase())) {
-					console.log(variable[j]);
-                                        results['results'][valueCounter]['lines'][i] = singleLine.replace(variable[j], `<span class="search-term">${variable[j]}</span>`);
- 	  			        console.log(singleLine);
-                                  }
-                              }//end of term for loop
-                          }//end of line for loop
-			results['results'][valueCounter]['href']= relativeUrl(req, `../${results['results'][valueCounter]['name']}`);
-                        console.log(results['results'][valueCounter]['href']);
-			valueCounter = valueCounter + 1;
-                        //  console.log(href);
-                      }//end of result for loop
-                  }//end of if
-                  //for links
-                  //console.log(results['links']);
-		if(results!== undefined){
-                  results['links'].forEach(link => {
-                      if (link.rel === 'next' || link.rel === 'previous') {
-                          let params = {q: search.q, start: link.start};
-                          //console.log(req);
-                          let url = relativeUrl(req, '', params);
-			  links.push({rel : link.rel , href: url});
-                      }//end of id
-                  });//end of foreach
-		}//end of if
-                //  console.log(links);
-              }//end of try
-              catch (err) {
-                  console.error(err);
-                  errors = wsErrors(err);
+          let errorMsg = undefined;
+          if (isSubmit || isStart) {
+              if (q) {
+                  errorMsg = 'Please specify one-or-more search terms';
               }
+              if (errorMsg) {
+                  let values = {};
+                  try {
+                      results = await app.locals.model.searchDocs(q, start);
+                      //console.log(results);
+                      const href1 = [];
+                      let finalObject = {};
+                      if (results !== undefined) {
+                          heading = "Search Results";
+                          let searchTerms = search.q;
+                          let Terms = new Set(searchTerms.toLowerCase().split(/\W+/));
+                          //for values
+                          let valueCounter = 0;
+                          for (let value of results['results']) {
+                              //console.log(value['lines']);
+                              let lineLength = value.lines.length;
+                              for (let i = 0; i < lineLength; i++) {
+                                  //console.log(results['results'][valueCounter]);
+                                  let singleLine = results['results'][valueCounter]['lines'][i];
 
+                                  let variable = singleLine.split(/\W+/);
+                                  let indexlength = variable.length;
+                                  for (let j = 0; j < indexlength; j++) {
+                                      if (Terms.has(variable[j].toLowerCase())) {
+                                          console.log(variable[j]);
+                                          results['results'][valueCounter]['lines'][i] = singleLine.replace(variable[j], `<span class="search-term">${variable[j]}</span>`);
+                                          console.log(singleLine);
+                                      }
+                                  }//end of term for loop
+                              }//end of line for loop
+                              results['results'][valueCounter]['href'] = relativeUrl(req, `../${results['results'][valueCounter]['name']}`);
+                              console.log(results['results'][valueCounter]['href']);
+                              valueCounter = valueCounter + 1;
+                              //  console.log(href);
+                          }//end of result for loop
+                      }//end of if
+                      //for links
+                      //console.log(results['links']);
+                      if (results !== undefined) {
+                          results['links'].forEach(link => {
+                              if (link.rel === 'next' || link.rel === 'previous') {
+                                  let params = {q: search.q, start: link.start};
+                                  //console.log(req);
+                                  let url = relativeUrl(req, '', params);
+                                  links.push({rel: link.rel, href: url});
+                              }//end of id
+                          });//end of foreach
+                      }//end of if
+                      //  console.log(links);
+
+                      if(results === undefined || results.results.length === 0){
+                          errors = [`no document containing "${q}" found, please retry`]
+                      }
+                  }//end of try
+
+                  catch (err) {
+                      console.error(err);
+                      errors = [err.message || err.toString()];
+                  }
+              }//end of error if statement
           }
           //  console.log(results);
-          const model = {base: app.locals.base, results: results.results, links: links, s: search.q, heading};
+          const model = {base: app.locals.base, results: results.results, links: links, s: search.q, heading, errors, errorMsg};
           const html = doMustache(app, 'search', model);
           //  console.log(html);
           res.send(html);
