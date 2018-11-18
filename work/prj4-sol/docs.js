@@ -106,49 +106,54 @@ function setupRoutes(app) {
 
           	let values ={};
 		try{
-          		let myResults = await app.locals.model.searchDocs(q, start);
-			console.log(myResults);
-            let finalObject = {};
-			if(myResults){
-            let searchTerms = search.q;
-            let Terms = new Set(searchTerms.toLowerCase().split(/\W+/));
-            //for values
-			values.myResults = myResults.results.map(result => {
-                  		let lines = result.line.map(function(line) {
-				        //console.log(line);
-                      		return line.replace(/\w+/g, w => {
-                          		const word = Terms.has(w.toLowerCase());
-                          		if(word){
-                                 return `<span class="search-term">${w}</span>`;
-                                }else{
-                          		    return w;
-                                }
-                  		    });
-                  		});
-                  			const href = relativeUrl(req, `../${result.name}`);
-                  			return Object.assign({}, result, {lines, href});
-              			});
+          		results = await app.locals.model.searchDocs(q, start);
+			//console.log(results);
+            		let finalObject = {};
+	            	if(results!==undefined){
+            			let searchTerms = search.q;
+            			let Terms = new Set(searchTerms.toLowerCase().split(/\W+/));
+            		//for values
+					let valueCounter = 0;
+					for(let value of results['results']){
+					//console.log(value['lines']);
 
+						let lineLength = value.lines.length;
+						for(let i = 0 ; i < lineLength ; i++){
+				//			console.log(results['results'][valueCounter]);
+	                      				let singleLine = results['results'][valueCounter]['lines'][i];
+							for(let term of Terms){
+								if(singleLine.toLowerCase().includes(term)){
+									singleLine.replace(term,`<span class="search-term">${term}</span>`);
+								}
+							}
+	                  			   }
+					//	console.log( results['results'][valueCounter]['lines'][i]);
+	                  		}
+	                  			const href = relativeUrl(req, `../${results['results'][valueCounter]['name']}`);
+						valueCounter = valueCounter +1;
+			}
 			//for links
-             		     results.link.forEach(link => {
+			//console.log(results['links']);
+
+             		     results['links'].forEach(link => {
                			   if (link.rel === 'next' || link.rel === 'previous') {
-                		      let params = {q: searchTerms, start: link.start};
-                		      finalObject[link.rel] = relativeUrl(req, '', params);
+                		      let params = {q: search.q, start: link.start};
+					//console.log(req);
+                		      results['rel'][link.rel] = relativeUrl(req, '', params);
                 		  }
 		              });
-		  	 }
-		}
+				console.log(results);
+		  	}
 		catch (err) {
          	 	console.error(err);
 	  		errors = wsErrors(err);
 		}
-		return;
 
 	  }
-
-          const self = 'search.html';
-          const model = {base : app.locals.base, results};
+	//  console.log(results);
+          const model = {base : app.locals.base, results: results.results};
           const html = doMustache(app, 'search', model);
+	//  console.log(html);
           res.send(html);
       };
   }
