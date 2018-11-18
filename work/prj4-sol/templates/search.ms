@@ -26,8 +26,9 @@ Please fill in one or more search terms in the field below:
             {{#lines}}{{{.}}}<br>{{/lines}}
         </p>
     {{/results}}
+
     {{#links}}
-    <a id="next" href="{{next}}">Next</a>
+    	<a id={{rel}} href="{{href}}">{{rel}}</a>
     {{/links}}
 {{>footer}}
 </body>

@@ -88,6 +88,7 @@ function setupRoutes(app) {
   function redirectSearch(app) {
       return async function (req, res) {
           let results = {};
+	  let links = [];
           //let key = req.query && Object.keys(req.query) && Object.keys(req.query).length;
           let isSubmit1 = req.query;
           let isSubmit = isSubmit1.submit
@@ -120,28 +121,36 @@ function setupRoutes(app) {
                           for (let i = 0; i < lineLength; i++) {
                               //console.log(results['results'][valueCounter]);
                               let singleLine = results['results'][valueCounter]['lines'][i];
-                              for (let term of Terms) {
-                                  if (singleLine.toLowerCase().includes(term)) {
-                                      singleLine.replace(term, `<span class="search-term">${term}</span>`);
+
+			      let variable = singleLine.split(/\W+/);
+			      let indexlength = variable.length;
+                              for (let j = 0 ; j < indexlength ; j++) {
+                                  if (Terms.has(variable[j].toLowerCase())) {
+					console.log(variable[j]);
+                                   results['results'][valueCounter]['lines'][i] = singleLine.replace(variable[j], `<span class="search-term">${variable[j]}</span>`);
+
+				      console.log(singleLine);
                                   }
                               }//end of term for loop
                           }//end of line for loop
-                          valueCounter = valueCounter + 1;
                           const href = relativeUrl(req, `../${results['results'][valueCounter]['name']}`);
-                          console.log(href);
+			  valueCounter = valueCounter + 1;
+                        //  console.log(href);
                       }//end of result for loop
                   }//end of if
                   //for links
                   //console.log(results['links']);
-
+		if(results!== undefined){
                   results['links'].forEach(link => {
                       if (link.rel === 'next' || link.rel === 'previous') {
                           let params = {q: search.q, start: link.start};
                           //console.log(req);
-                          results['rel'][link.rel] = relativeUrl(req, '', params);
+                          let url = relativeUrl(req, '', params);
+			  links.push({rel : link.rel , href: url});
                       }//end of id
                   });//end of foreach
-                  console.log(results);
+		}//end of if
+                //  console.log(links);
               }//end of try
               catch (err) {
                   console.error(err);
@@ -150,7 +159,7 @@ function setupRoutes(app) {
 
           }
           //  console.log(results);
-          const model = {base: app.locals.base, results: results.results};
+          const model = {base: app.locals.base, results: results.results, links: links};
           const html = doMustache(app, 'search', model);
           //  console.log(html);
           res.send(html);
