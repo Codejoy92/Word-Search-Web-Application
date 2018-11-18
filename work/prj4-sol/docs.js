@@ -89,6 +89,7 @@ function setupRoutes(app) {
       return async function (req, res) {
           let results = {};
 	  let links = [];
+	  let heading = undefined;
           //let key = req.query && Object.keys(req.query) && Object.keys(req.query).length;
           let isSubmit1 = req.query;
           let isSubmit = isSubmit1.submit
@@ -96,14 +97,12 @@ function setupRoutes(app) {
           let errors = undefined;
           let search = getNonEmptyValues(req.query);
           let {q, start} = search;
-          if ((isSubmit && search.q !==undefined) || isStart ) {
-              //errors = validate(search);
-              //if (Object.keys(search).length == 0) {
-              //	const msg = 'at least one search parameter must be specified';
-              //	errors = Object.assign(errors || {}, { _: msg });
-              // }
-              //if(!errors){
-              //}
+	  let errorMsg = undefined;
+          if ((isSubmit && search.q !== undefined)|| isStart ) {
+              if(q) {
+              	errorMsg = 'Please specify one-or-more search terms';
+              	errors = Object.assign(errors || {}, { _: errorMsg });
+               }
 
               let values = {};
               try {
@@ -112,6 +111,7 @@ function setupRoutes(app) {
 			const href1 = [];
                   let finalObject = {};
                   if (results !== undefined) {
+		      heading = "Search Results";
                       let searchTerms = search.q;
                       let Terms = new Set(searchTerms.toLowerCase().split(/\W+/));
                       //for values
@@ -160,7 +160,7 @@ function setupRoutes(app) {
 
           }
           //  console.log(results);
-          const model = {base: app.locals.base, results: results.results, links: links, s: search.q};
+          const model = {base: app.locals.base, results: results.results, links: links, s: search.q, heading};
           const html = doMustache(app, 'search', model);
           //  console.log(html);
           res.send(html);
