@@ -113,10 +113,10 @@ function setupRoutes(app) {
           let {q, start} = search;
           let errorMsg = undefined;
           if (isSubmit || isStart) {
-              if (q) {
+              if (!q) {
                   errorMsg = 'Please specify one-or-more search terms';
               }
-              if (errorMsg) {
+              if (!errorMsg) {
                   let values = {};
                   try {
                       results = await app.locals.model.searchDocs(q, start);
@@ -124,7 +124,6 @@ function setupRoutes(app) {
                       const href1 = [];
                       let finalObject = {};
                       if (results !== undefined) {
-                          heading = "Search Results";
                           let searchTerms = search.q;
                           let Terms = new Set(searchTerms.toLowerCase().split(/\W+/));
                           //for values
@@ -135,19 +134,18 @@ function setupRoutes(app) {
                               for (let i = 0; i < lineLength; i++) {
                                   //console.log(results['results'][valueCounter]);
                                   let singleLine = results['results'][valueCounter]['lines'][i];
-
                                   let variable = singleLine.split(/\W+/);
                                   let indexlength = variable.length;
                                   for (let j = 0; j < indexlength; j++) {
                                       if (Terms.has(variable[j].toLowerCase())) {
-                                          console.log(variable[j]);
+                                          //console.log(variable[j]);
                                           results['results'][valueCounter]['lines'][i] = singleLine.replace(variable[j], `<span class="search-term">${variable[j]}</span>`);
-                                          console.log(singleLine);
+                                          //console.log(singleLine);
                                       }
                                   }//end of term for loop
                               }//end of line for loop
                               results['results'][valueCounter]['href'] = relativeUrl(req, `../${results['results'][valueCounter]['name']}`);
-                              console.log(results['results'][valueCounter]['href']);
+                              //console.log(results['results'][valueCounter]['href']);
                               valueCounter = valueCounter + 1;
                               //  console.log(href);
                           }//end of result for loop
@@ -168,7 +166,9 @@ function setupRoutes(app) {
 
                       if(results === undefined || results.results.length === 0){
                           errors = [`no document containing "${q}" found, please retry`]
-                      }
+                      }else{
+			heading = "Search Results";
+		      }
                   }//end of try
 
                   catch (err) {

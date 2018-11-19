@@ -22,8 +22,8 @@ DocsWs.prototype.getContent = async function(name) {
 
 DocsWs.prototype.addContent = async function(name, content) {
     try {
-        console.log("docswsName "+name);
-        console.log("docsContent "+content);
+//        console.log("docswsName "+name);
+//        console.log("docsContent "+content);
         const response = await axios.post(`${this.docsUrl}`, {name, content});
         return response.data;
     }
@@ -44,7 +44,7 @@ DocsWs.prototype.searchDocs = async function(searchTerms, start) {
 	}else{
 		 url = this.docsUrl+"?q="+searchTerms;
 	}
-	console.log("url:"+url);
+//	console.log("url:"+url);
         const response = await axios.get(url);
         return response.data;
     }
