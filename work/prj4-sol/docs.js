@@ -154,12 +154,18 @@ function setupRoutes(app) {
                       //console.log(results['links']);
                       if (results !== undefined) {
                           results['links'].forEach(link => {
-                              if (link.rel === 'next' || link.rel === 'previous') {
-                                  let params = {q: search.q, start: link.start};
-                                  //console.log(req);
+                              	if(link.rel === 'next'){
+				  let params = {q: search.q, start: link.start};
                                   let url = relativeUrl(req, '', params);
-                                  links.push({rel: link.rel, href: url});
-                              }//end of id
+				  link.rel = 'Next';
+                                  links.push({Next: link.rel, href: url});
+				}
+				if(link.rel === 'previous'){
+				  let params = {q: search.q, start: link.start};
+                                  let url = relativeUrl(req, '', params);
+				  link.rel = 'Previous';
+                                  links.push({Previous: link.rel, href: url});
+				}
                           });//end of foreach
                       }//end of if
                       //  console.log(links);
@@ -177,7 +183,6 @@ function setupRoutes(app) {
                   }
               }//end of error if statement
           }
-          //  console.log(results);
           const model = {base: app.locals.base, results: results.results, links: links, s: search.q, heading, errors, errorMsg};
           const html = doMustache(app, 'search', model);
           //  console.log(html);

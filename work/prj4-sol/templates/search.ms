@@ -35,7 +35,13 @@
     {{/results}}
 
     {{#links}}
-    	<a id={{rel}} href="{{href}}">{{rel}}</a>
+	{{#Next}}
+    	<a id={{Next}} href="{{href}}">{{Next}}</a>
+	{{/Next}}
+
+        {{#Previous}}
+        <a id={{Previous}} href="{{href}}">{{Previous}}</a>
+        {{/Previous}}
     {{/links}}
 {{>footer}}
 </body>
