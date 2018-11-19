@@ -86,7 +86,7 @@ function setupRoutes(app) {
           }
           catch (err) {
               console.error(err);
-              model = {base, errors:[err.toString() || err.message ]};
+              model = {base: app.locals.base, errors:[err.toString() || err.message ]};
           }
           const html = doMustache(app, 'content', model);
           res.send(html);
