@@ -67,7 +67,7 @@ function setupRoutes(app) {
               }
           }catch(err){
               console.error(err);
-              errors = [err.message || err.toString()];
+              errors = [err.message || "Web Service Error"];
           }
           const viewModel = {base: app.locals.base, errors, addError};
           const html = doMustache(app, 'add', viewModel);
@@ -87,7 +87,7 @@ function setupRoutes(app) {
           }
           catch (err) {
               console.error(err);
-              model = {base: app.locals.base, errors:[err.toString() || err.message ]};
+              model = {base: app.locals.base, errors:[err.message||"Web Service Error" ]};
           }
           const html = doMustache(app, 'content', model);
           res.send(html);
@@ -180,7 +180,7 @@ function setupRoutes(app) {
 
                   catch (err) {
                       console.error(err);
-                      errors = [err.message || err.toString()];
+                      errors = [err.message || "Web Service Error"];
                   }
               }//end of error if statement
           }
