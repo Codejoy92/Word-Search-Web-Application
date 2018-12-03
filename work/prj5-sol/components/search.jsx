@@ -13,18 +13,22 @@ class Search extends React.Component {
    *       in content tab to name and switch to content tab.
    */
   constructor(props) {
-    super(props);
-    //@TODO
+	super(props);
+	this.handleKeyPress = this.handleKeyPress.bind(this); 
   }
 
-  //@TODO
-
+  handleKeyPress(e){
+	if (e.key === 'Enter') {
+		alert('do validate');
+       }
+  }
 
   render() {
-    //@TODO
-    return "";
-  }
-
+     return (<div>
+		<b>Search terms:</b>
+		<input type="text" onKeyPress={this.handleKeyPress}/>
+	    </div>);
+	}
 }
-
 module.exports = Search;
+
