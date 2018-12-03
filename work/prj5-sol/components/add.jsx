@@ -14,10 +14,13 @@ class Add extends React.Component {
    */
   constructor(props) {
     super(props);
-    //@TODO
+    this.handleChange = this.handleChange.bind(this);
   }
 
-  //@TODO add code
+  handleChange(){
+	//alert(selectorFiles);
+	alert("add yo");
+  }
 
   //Note that a you can get information on the file being uploaded by
   //hooking the change event on <input type="file">.  It will have
@@ -28,8 +31,9 @@ class Add extends React.Component {
 
 
   render() {
-    //@TODO
-    return "";
+    return (<div>
+                <b>Choose File:</b>&nbsp;&nbsp;&nbsp;&nbsp;<input type="file" Choose File onChange = {this.handleChange}/>
+            </div>);
   }
 
 }
