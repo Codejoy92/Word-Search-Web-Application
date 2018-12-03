@@ -25,8 +25,7 @@ class Search extends React.Component {
 
   render() {
      return (<div>
-		<b>Search terms:</b>
-		<input type="text" onKeyPress={this.handleKeyPress}/>
+		<b>Search Terms:</b>&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" onKeyPress={this.handleKeyPress}/>
 	    </div>);
 	}
 }
