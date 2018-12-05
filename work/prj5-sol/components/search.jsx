@@ -31,9 +31,13 @@ class Search extends React.Component {
 
   render() {
      return (
-		<form className = "control" onSubmit = {this.handleKeyPress}>
-			<label className = "label">Search Terms:</label>
-			<input name ="searchname" type="text"  onBlur = {this.handleKeyPress}/>
+		<form onSubmit = {this.handleKeyPress}>
+			<label>
+				<span class="label">Search Terms:</span>
+			</label>
+			<span className="control">
+				<input name ="searchname" type="text"  onBlur = {this.handleKeyPress}/>
+			</span>
 		</form>
 		);
 	}
