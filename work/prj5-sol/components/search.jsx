@@ -14,19 +14,28 @@ class Search extends React.Component {
    */
   constructor(props) {
 	super(props);
-	this.handleKeyPress = this.handleKeyPress.bind(this); 
+	this.handleKeyPress = this.handleKeyPress.bind(this);
   }
 
   handleKeyPress(e){
-	if (e.key === 'Enter') {
-		alert('do validate');
-       }
+		e.preventDefault();
+		if(e.target.value === undefined){
+			let value = this.props.app.ws.searchDocs(e.target.searchname.value, 0);
+			console.log(value);
+		}else{
+			let value = this.props.app.ws.searchDocs(e.target.value, 0);
+			console.log(value);
+		}
+		
   }
 
   render() {
-     return (<div>
-		<b>Search Terms:</b>&nbsp;&nbsp;&nbsp;&nbsp;<input type="text" onKeyPress={this.handleKeyPress}/>
-	    </div>);
+     return (
+		<form className = "control" onSubmit = {this.handleKeyPress}>
+			<label className = "label">Search Terms:</label>
+			<input name ="searchname" type="text"  onBlur = {this.handleKeyPress}/>
+		</form>
+		);
 	}
 }
 module.exports = Search;
