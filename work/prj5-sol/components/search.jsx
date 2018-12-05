@@ -15,30 +15,52 @@ class Search extends React.Component {
   constructor(props) {
 	super(props);
 	this.handleKeyPress = this.handleKeyPress.bind(this);
+	this.value;
+	this.searchTerm;
+	this.results = [];
+	this.state = {results : []};
   }
 
-  handleKeyPress(e){
+ async handleKeyPress(e){
 		e.preventDefault();
 		if(e.target.value === undefined){
-			let value = this.props.app.ws.searchDocs(e.target.searchname.value, 0);
-			console.log(value);
+			this.searchTerms = e.target.searchname.value;
+			this.value = await this.props.app.ws.searchDocs(e.target.searchname.value, 0);
 		}else{
-			let value = this.props.app.ws.searchDocs(e.target.value, 0);
-			console.log(value);
+			this.searchTerms = e.target.value;
+			this.value = await this.props.app.ws.searchDocs(e.target.value, 0);
 		}
+		
+		this.setState({results :this.value.results});
+		console.log(this.state);
 		
   }
 
   render() {
+  	
+  	let output = this.state.results.map(obj =>  (<div className="result">
+													<a className="result-name" href={obj.name}>{obj.name}</a>
+													<br></br>
+													{obj.lines.map(line => (<p>{line}</p>))}
+													<br></br>
+												</div>));
+  	
      return (
-		<form onSubmit = {this.handleKeyPress}>
-			<label>
-				<span class="label">Search Terms:</span>
-			</label>
-			<span className="control">
-				<input name ="searchname" type="text"  onBlur = {this.handleKeyPress}/>
-			</span>
-		</form>
+     	<div>
+			<form onSubmit = {this.handleKeyPress}>
+				<label>
+					<span className="label">Search Terms:</span>
+				</label>
+				<span className="control">
+					<input name ="searchname" type="text"  onBlur = {this.handleKeyPress}/>
+				</span>
+		
+			</form>
+			
+				{output}
+		
+		</div>
+		
 		);
 	}
 }
