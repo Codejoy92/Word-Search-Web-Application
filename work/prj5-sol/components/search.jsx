@@ -16,32 +16,66 @@ class Search extends React.Component {
 	super(props);
 	this.handleKeyPress = this.handleKeyPress.bind(this);
 	this.value;
-	this.searchTerm;
+	this.searchTerm = undefined;
 	this.results = [];
 	this.state = {results : []};
+
   }
 
  async handleKeyPress(e){
 		e.preventDefault();
 		if(e.target.value === undefined){
 			this.searchTerms = e.target.searchname.value;
+		//	console.log(this.searchTerms);
 			this.value = await this.props.app.ws.searchDocs(e.target.searchname.value, 0);
+			
 		}else{
 			this.searchTerms = e.target.value;
 			this.value = await this.props.app.ws.searchDocs(e.target.value, 0);
-		}
 		
+		}
+				
 		this.setState({results :this.value.results});
-		console.log(this.state);
+		//console.log(this.state);
+		
 		
   }
 
   render() {
+  	let Terms = new Set();
+  	if(this.searchTerms !== undefined){
+  	Terms = new Set(this.searchTerms.toLowerCase().split(/\W+/));
+  	 let valueCounter = 0;
+  	 for (let value of this.state.results) {
+  	 	let lineArray = [];
+  	 	let lineLength = value.lines.length;
+                              for (let i = 0; i < lineLength; i++) {
+                              	  let singleLine = this.state.results[valueCounter]['lines'][i];
+                                  let variable = singleLine.split(/\W+/);
+                                  let indexlength = variable.length;
+                                  
+                                  for (let j = 0; j < indexlength; j++) {
+                                      if (Terms.has(variable[j].toLowerCase())) {
+                                          lineArray.push(<span class="search-term">{variable[j]}</span>);
+                                          lineArray.push(" ");
+                                      }else{
+                                      lineArray.push(variable[j] + " ");
+                                      }
+                                  }
+								lineArray.push(<br></br>);
+                              }value["array"] = lineArray;
+                              console.log(this.state.results);
+                              valueCounter = valueCounter + 1;
+
+  		 }
+  	}
   	
   	let output = this.state.results.map(obj =>  (<div className="result">
 													<a className="result-name" href={obj.name}>{obj.name}</a>
 													<br></br>
-													{obj.lines.map(line => (<p>{line}</p>))}
+													<br></br>
+                                 						    {obj.array}
+													
 													<br></br>
 												</div>));
   	
