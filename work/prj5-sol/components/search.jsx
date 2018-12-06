@@ -80,7 +80,10 @@ class Search extends React.Component {
 
   		 }
   		 if(this.state.results.length === 0){
-  		 		this.state.error = "No results for "+this.searchTerms;
+  		 		if(this.searchTerms !== "" ){
+  		 				this.state.error = "No results for "+this.searchTerms;
+  		 		}
+  		 		
   		 }
   	}
   	
