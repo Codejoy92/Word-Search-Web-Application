@@ -52,15 +52,25 @@ class Search extends React.Component {
                               for (let i = 0; i < lineLength; i++) {
                               	  let singleLine = this.state.results[valueCounter]['lines'][i];
                                   let variable = singleLine.split(/\W+/);
+                                  
                                   let indexlength = variable.length;
                                   
                                   for (let j = 0; j < indexlength; j++) {
+                                  	  let myString = variable[j];
+                                  	  if(myString[myString.length - 1] === ","){
+                                  	  	 if (Terms.has(myString.slice(0,myString.length - 1).toLowerCase())) {
+                                  	  	 	console.log(myString);
+                                          lineArray.push(<span class="search-term">{variable[j]}</span>);
+                                          lineArray.push(" ");
+                                      	}
+                                  	  }else{
                                       if (Terms.has(variable[j].toLowerCase())) {
                                           lineArray.push(<span class="search-term">{variable[j]}</span>);
                                           lineArray.push(" ");
                                       }else{
                                       lineArray.push(variable[j] + " ");
                                       }
+                                  }
                                   }
 								lineArray.push(<br></br>);
                               }value["array"] = lineArray;
@@ -73,10 +83,9 @@ class Search extends React.Component {
   	let output = this.state.results.map(obj =>  (<div className="result">
 													<a className="result-name" href={obj.name}>{obj.name}</a>
 													<br></br>
-													<br></br>
-                                 						    {obj.array}
 													
-													<br></br>
+                                 					<p>{obj.array}</p>
+													
 												</div>));
   	
      return (
