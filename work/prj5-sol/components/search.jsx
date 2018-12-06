@@ -18,7 +18,7 @@ class Search extends React.Component {
 	this.value;
 	this.searchTerm = undefined;
 	this.results = [];
-	this.state = {results : []};
+	this.state = {results : [], error : []};
 
   }
 
@@ -35,7 +35,7 @@ class Search extends React.Component {
 		
 		}
 				
-		this.setState({results :this.value.results});
+		this.setState({results :this.value.results, error : ""});
 		//console.log(this.state);
 		
 		
@@ -51,15 +51,16 @@ class Search extends React.Component {
   	 	let lineLength = value.lines.length;
                               for (let i = 0; i < lineLength; i++) {
                               	  let singleLine = this.state.results[valueCounter]['lines'][i];
-                                  let variable = singleLine.split(/\W+/);
+                                  let variable = singleLine.split(/\s+/);
                                   
                                   let indexlength = variable.length;
                                   
                                   for (let j = 0; j < indexlength; j++) {
                                   	  let myString = variable[j];
-                                  	  if(myString[myString.length - 1] === ","){
-                                  	  	 if (Terms.has(myString.slice(0,myString.length - 1).toLowerCase())) {
-                                  	  	 	console.log(myString);
+                                  	  if(myString[myString.length - 1] === ("," || ";" || "?" || "." || "#" || "!" || ":" || "-" || "_" || "`") || 
+                                  	  	myString[myString.length - 2] === "'"){
+                                  	  	 if (Terms.has(myString.slice(0,myString.length - 1).toLowerCase())|| Terms.has(myString.slice(0,myString.length - 2).toLowerCase())) {
+                                  	  	 	
                                           lineArray.push(<span class="search-term">{variable[j]}</span>);
                                           lineArray.push(" ");
                                       	}
@@ -74,9 +75,12 @@ class Search extends React.Component {
                                   }
 								lineArray.push(<br></br>);
                               }value["array"] = lineArray;
-                              console.log(this.state.results);
+                              
                               valueCounter = valueCounter + 1;
 
+  		 }
+  		 if(this.state.results.length === 0){
+  		 		this.state.error = "No results for "+this.searchTerms;
   		 }
   	}
   	
@@ -87,6 +91,7 @@ class Search extends React.Component {
                                  					<p>{obj.array}</p>
 													
 												</div>));
+  	let error = this.state.error;
   	
      return (
      	<div>
@@ -101,7 +106,7 @@ class Search extends React.Component {
 			</form>
 			
 				{output}
-		
+				<span className = "error">{error}</span>
 		</div>
 		
 		);
