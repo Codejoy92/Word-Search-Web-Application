@@ -25,7 +25,6 @@ class Search extends React.Component {
 
  async clickHandler(e){
  	e.preventDefault();
- 	
  	this.props.app.setContentName(e.target.name);
  }
 
