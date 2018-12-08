@@ -18,9 +18,14 @@ class Add extends React.Component {
     //@TODO
   }
 
-  handleChange(){
-  //alert(selectorFiles);
-  alert("add yo");
+  async handleChange(e){
+  e.preventDefault();
+  let file = event.target.files[0]; //await readFile(e.target.value);
+  let fileName = file.name;
+  let fileContent = await readFile(file);
+  //console.log(fileName +" : "+fileContent);
+  await this.props.app.ws.addContent(fileName, fileContent);
+  this.props.app.setContentName(fileName);
   }
 
   //@TODO add code
