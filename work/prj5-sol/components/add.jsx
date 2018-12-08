@@ -14,7 +14,13 @@ class Add extends React.Component {
    */
   constructor(props) {
     super(props);
+    this.handleChange = this.handleChange.bind(this);
     //@TODO
+  }
+
+  handleChange(){
+  //alert(selectorFiles);
+  alert("add yo");
   }
 
   //@TODO add code
@@ -29,7 +35,12 @@ class Add extends React.Component {
 
   render() {
     //@TODO
-    return "";
+    return (<form>
+            <label className="label">Choose File:<input className="control" type="file" onChange = {this.handleChange}/></label>
+            <div className="error"></div>
+                
+            </form>);
+
   }
 
 }

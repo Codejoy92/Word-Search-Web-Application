@@ -15,12 +15,19 @@ class Search extends React.Component {
   constructor(props) {
 	super(props);
 	this.handleKeyPress = this.handleKeyPress.bind(this);
+	this.clickHandler = this.clickHandler.bind(this);
 	this.value;
 	this.searchTerm = undefined;
 	this.results = [];
 	this.state = {results : [], error : []};
 
   }
+
+ async clickHandler(e){
+ 	e.preventDefault();
+ 	
+ 	this.props.app.setContentName(e.target.name);
+ }
 
  async handleKeyPress(e){
 		e.preventDefault();
@@ -57,16 +64,16 @@ class Search extends React.Component {
                                   
                                   for (let j = 0; j < indexlength; j++) {
                                   	  let myString = variable[j];
-                                  	  if(myString[myString.length - 1] === ("," || ";" || "?" || "." || "#" || "!" || ":" || "-" || "_" || "`") || 
+                                  	  if(myString[myString.length - 1] === ("," || ";" || "?" || "." || "#" || "!" || ":" || "-" || "_" || "`" || "\"") || 
                                   	  	myString[myString.length - 2] === "'"){
                                   	  	 if (Terms.has(myString.slice(0,myString.length - 1).toLowerCase())|| Terms.has(myString.slice(0,myString.length - 2).toLowerCase())) {
-                                  	  	 	
-                                          lineArray.push(<span class="search-term">{variable[j]}</span>);
+                                  	  	// 	console.log("after trim"+myString.slice(0,myString.length - 2).toLowerCase());
+                                          lineArray.push(<span className="search-term">{variable[j]}</span>);
                                           lineArray.push(" ");
                                       	}
                                   	  }else{
                                       if (Terms.has(variable[j].toLowerCase())) {
-                                          lineArray.push(<span class="search-term">{variable[j]}</span>);
+                                          lineArray.push(<span className="search-term">{variable[j]}</span>);
                                           lineArray.push(" ");
                                       }else{
                                       lineArray.push(variable[j] + " ");
@@ -88,7 +95,7 @@ class Search extends React.Component {
   	}
   	
   	let output = this.state.results.map(obj =>  (<div className="result">
-													<a className="result-name" href={obj.name}>{obj.name}</a>
+													<a className="result-name" onClick = {this.clickHandler} name={obj.name} href={obj.name}>{obj.name}</a>
 													<br></br>
 													
                                  					<p>{obj.array}</p>
