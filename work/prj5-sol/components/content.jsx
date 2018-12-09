@@ -17,28 +17,27 @@ class Content extends React.Component {
     super(props);
     this.state = {name : [], content : [],error : []};
     this.name;
-    this.content;
+    
     
   }
 
- async componentDidMount(){
+ async componentDidMount(prevProps){
   if(this.props.name ){
     this.name = this.props.name;
-   // console.log(this.name);
-    this.content = await this.props.app.ws.getContent(this.name);
-  //  console.log(this.content);
-    this.setState({name :this.name, content : this.content.content});
+    let content = await this.props.app.ws.getContent(this.name);
+    this.setState({name :this.name, content : content.content});
   }
  }
 
- async componentDidUpdate(prevProps){
-  //console.log(prevProps);
-  if(this.props.name /*&& prevProps.name !== this.props.name*/){
-    this.name = this.props.name;
+ async componentDidUpdate(prevProps, prevState){
+    console.log("prevProps.name:"+prevState.name);
+    console.log("props:"+this.props.name);
+  if(this.props.name && this.props.name !== prevState.name){
+    let name = this.props.name;
     //console.log("sdas");
-    this.content = await this.props.app.ws.getContent(this.name);
-    this.setState({name :this.name, content : this.content.content});
-    //console.log(this.content);
+    let content = await this.props.app.ws.getContent(name);
+    this.setState({name :name, content : content.content});
+    
   }
  }
   

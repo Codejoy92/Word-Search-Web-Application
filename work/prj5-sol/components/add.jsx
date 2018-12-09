@@ -26,7 +26,7 @@ class Add extends React.Component {
   let name = fileName.slice(0, fileName.lastIndexOf('.'));
 
   let fileContent = await readFile(file);
-  console.log(name +" : "+fileContent);
+  //console.log(name +" : "+fileContent);
   
   await this.props.app.ws.addContent(name, fileContent);
   this.props.app.setContentName(name);
