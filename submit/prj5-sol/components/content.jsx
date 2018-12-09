@@ -30,7 +30,7 @@ class Content extends React.Component {
  }
 
  async componentDidUpdate(prevProps, prevState){
-  console.log("loop check");
+ // console.log("loop check");
   if(this.props.name && this.props.name !== prevState.name){
     let name = this.props.name;
     let content = await this.props.app.ws.getContent(name);
