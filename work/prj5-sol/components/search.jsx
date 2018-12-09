@@ -30,20 +30,21 @@ class Search extends React.Component {
 
  async handleKeyPress(e){
 		e.preventDefault();
+		try{
 		if(e.target.value === undefined){
 			this.searchTerms = e.target.searchname.value;
-		//	console.log(this.searchTerms);
 			this.value = await this.props.app.ws.searchDocs(e.target.searchname.value, 0);
-			
 		}else{
 			this.searchTerms = e.target.value;
 			this.value = await this.props.app.ws.searchDocs(e.target.value, 0);
-		
 		}
-				
 		this.setState({results :this.value.results, error : ""});
-		//console.log(this.state);
-		
+		} catch(e){
+		    let err =[e.message || "Web Service Error"];
+		    console.log(err[0]); 
+		    this.setState({error : err[0]});
+		    
+	  }
 		
   }
 
@@ -78,7 +79,9 @@ class Search extends React.Component {
   		 }
   		 if(this.state.results.length === 0){
   		 		if(this.searchTerms.trim() !== ""){
+  		 			if(!this.state.error){
   		 				this.state.error = "No results for "+this.searchTerms;
+  		 			}
   		 		}
   		 		
   		 }
@@ -89,7 +92,6 @@ class Search extends React.Component {
 													<br></br>
                                  					<p>{obj.array}</p>
 												</div>));
-  	let error = this.state.error;
   	
      return (
      	<div>
@@ -104,7 +106,7 @@ class Search extends React.Component {
 			</form>
 			
 				{output}
-				<span className = "error">{error}</span>
+				<span className = "error">{this.state.error}</span>
 		</div>
 		
 		);

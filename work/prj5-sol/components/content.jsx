@@ -15,7 +15,7 @@ class Content extends React.Component {
    */
   constructor(props) {
     super(props);
-    this.state = {name : [], content : [],error : []};
+    this.state = {name : [], content : []};
     this.name;
     
     
@@ -30,8 +30,7 @@ class Content extends React.Component {
  }
 
  async componentDidUpdate(prevProps, prevState){
-  //  console.log("prevProps.name:"+prevState.name);
-  //  console.log("props:"+this.props.name);
+  console.log("loop check");
   if(this.props.name && this.props.name !== prevState.name){
     let name = this.props.name;
     let content = await this.props.app.ws.getContent(name);
@@ -50,7 +49,7 @@ class Content extends React.Component {
                 {this.state.content}
                 </pre>
               </section>
-            </div>;
+            </div>
       
   }
 

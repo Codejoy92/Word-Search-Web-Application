@@ -15,19 +15,26 @@ class Add extends React.Component {
   constructor(props) {
     super(props);
     this.handleChange = this.handleChange.bind(this);
-    //@TODO
+    this.state = {error: []};
   }
 
   async handleChange(e){
   e.preventDefault();
-  let file = event.target.files[0]; //await readFile(e.target.value);
+  try{
+  if(event.target.files[0]){
+  let file = event.target.files[0]; 
   let fileName = file.name;
   let name = fileName.slice(0, fileName.lastIndexOf('.'));
   let fileContent = await readFile(file);
-  //console.log(name +" : "+fileContent);
   await this.props.app.ws.addContent(name, fileContent);
   this.props.app.setContentName(name);
-
+  }
+  }catch(e){
+    
+        let err =[e.message || "Web Service Error"];
+        console.log(err[0]); 
+        this.setState({error : err[0]});
+  }
   }
 
   //@TODO add code
@@ -41,10 +48,9 @@ class Add extends React.Component {
 
 
   render() {
-    //@TODO
     return (<form>
             <label className="label">Choose File:<input className="control" type="file" onChange = {this.handleChange}/></label>
-            <div className="error"></div>               
+            <div className="error">{this.state.error}</div>               
             </form>);
 
   }
