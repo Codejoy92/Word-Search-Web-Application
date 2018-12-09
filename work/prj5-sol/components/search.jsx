@@ -57,23 +57,23 @@ class Search extends React.Component {
   	 	let lineLength = value.lines.length;
                               for (let i = 0; i < lineLength; i++) {
                               	  let singleLine = this.state.results[valueCounter]['lines'][i];
-                                  let variable = singleLine.split(/\s+/);
-                                  
+                                  let variable = [];
+                                  variable = singleLine.split(/(\w+| \W+)/);
+
                                   let indexlength = variable.length;
-                                  
                                   for (let j = 0; j < indexlength; j++) {
                                   	  let myString = variable[j];
                                       if (Terms.has(variable[j].toLowerCase())) {
                                           lineArray.push(<span className="search-term">{variable[j]}</span>);
-                                          lineArray.push(" ");
                                       }else{
-                                      	lineArray.push(variable[j] + " ");
+                                      	//console.log(variable[j]);
+                                      	lineArray.push(variable[j]);
                                       }
                                   }
 								lineArray.push(<br></br>);
-                              }value["array"] = lineArray;
-                              
-                              valueCounter = valueCounter + 1;
+                              }
+        value["array"] = lineArray;
+        valueCounter = valueCounter + 1;
 
   		 }
   		 if(this.state.results.length === 0){
@@ -87,9 +87,7 @@ class Search extends React.Component {
   	let output = this.state.results.map(obj =>  (<div className="result">
 													<a className="result-name" onClick = {this.clickHandler} name={obj.name} href={obj.name}>{obj.name}</a>
 													<br></br>
-													
                                  					<p>{obj.array}</p>
-													
 												</div>));
   	let error = this.state.error;
   	
