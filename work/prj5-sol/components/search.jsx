@@ -63,21 +63,12 @@ class Search extends React.Component {
                                   
                                   for (let j = 0; j < indexlength; j++) {
                                   	  let myString = variable[j];
-                                  	  if(myString[myString.length - 1] === ("," || ";" || "?" || "." || "#" || "!" || ":" || "-" || "_" || "`" || "\"") || 
-                                  	  	myString[myString.length - 2] === "'"){
-                                  	  	 if (Terms.has(myString.slice(0,myString.length - 1).toLowerCase())|| Terms.has(myString.slice(0,myString.length - 2).toLowerCase())) {
-                                  	  	// 	console.log("after trim"+myString.slice(0,myString.length - 2).toLowerCase());
-                                          lineArray.push(<span className="search-term">{variable[j]}</span>);
-                                          lineArray.push(" ");
-                                      	}
-                                  	  }else{
                                       if (Terms.has(variable[j].toLowerCase())) {
                                           lineArray.push(<span className="search-term">{variable[j]}</span>);
                                           lineArray.push(" ");
                                       }else{
-                                      lineArray.push(variable[j] + " ");
+                                      	lineArray.push(variable[j] + " ");
                                       }
-                                  }
                                   }
 								lineArray.push(<br></br>);
                               }value["array"] = lineArray;
@@ -86,7 +77,7 @@ class Search extends React.Component {
 
   		 }
   		 if(this.state.results.length === 0){
-  		 		if(this.searchTerms.trim() !== "" ){
+  		 		if(this.searchTerms.trim() !== ""){
   		 				this.state.error = "No results for "+this.searchTerms;
   		 		}
   		 		

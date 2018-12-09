@@ -30,11 +30,10 @@ class Content extends React.Component {
  }
 
  async componentDidUpdate(prevProps, prevState){
-    console.log("prevProps.name:"+prevState.name);
-    console.log("props:"+this.props.name);
+  //  console.log("prevProps.name:"+prevState.name);
+  //  console.log("props:"+this.props.name);
   if(this.props.name && this.props.name !== prevState.name){
     let name = this.props.name;
-    //console.log("sdas");
     let content = await this.props.app.ws.getContent(name);
     this.setState({name :name, content : content.content});
     

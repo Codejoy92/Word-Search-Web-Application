@@ -22,12 +22,9 @@ class Add extends React.Component {
   e.preventDefault();
   let file = event.target.files[0]; //await readFile(e.target.value);
   let fileName = file.name;
-  
   let name = fileName.slice(0, fileName.lastIndexOf('.'));
-
   let fileContent = await readFile(file);
   //console.log(name +" : "+fileContent);
-  
   await this.props.app.ws.addContent(name, fileContent);
   this.props.app.setContentName(name);
 
@@ -47,8 +44,7 @@ class Add extends React.Component {
     //@TODO
     return (<form>
             <label className="label">Choose File:<input className="control" type="file" onChange = {this.handleChange}/></label>
-            <div className="error"></div>
-                
+            <div className="error"></div>               
             </form>);
 
   }
